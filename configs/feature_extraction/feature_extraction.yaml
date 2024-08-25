@@ -1,0 +1,83 @@
+class_name:
+  _target_: feature_extraction.feature_extraction.FE
+
+
+meta_data:
+  #path_to_meta: "D:\\PDResearch\\data\\(v25.05.2024) PD_MDS-UPDRS.csv" #"E:\\статья\\Patient_PD_new\\data_analysis\\(v19.05.2024) PD_MDS-UPDRS.csv"
+  dataset_type: ['PD', 'HEALTHY', 'STUDENT']
+  stage: [0,1.0,1.5,2.0,2.5,3.0,3.5]
+  data_quality: [1,2,3,4,5] #TODO
+  feature_mode: ['hand', 'face', 'em', 'tremor'] #TODO different task
+
+PD:
+  path_to_directory: 'D://PD'
+  number: [1, 2,  3,  4,  5,  6,  7,  8,  9,
+           11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
+           21, 22, 23, 24, 25, 26, 27, 28, 29, 30,
+           31, 32, 33, 34, 35, 36, 37, 38, 39, 40,
+           41, 42, 43, 44, 45, 46, 47, 49,
+           52, 53, 54, 55, 56, 57, 58, 59, 60,
+           61, 62, 63, 64, 65, 66, 67, 68, 69, 70,
+           71, 72, 73, 74, 75, 76, 77, 78, 79, 80,
+           81, 82, 83, 85, 86, 87, 90,
+           91, 92, 93, 94, 95, 96, 97]
+  #[1,10,52,53,55,58,59,60,65,69,73,74,76,77,78,79,80,82,84,85,86,87,88,89,92,93,94,95,96,97] #TODO
+  path_to_meta: "D:\\Meta\\PD.csv" #TODO
+  id_name: 'Patient'
+
+HEALTHY:
+  path_to_directory: 'D://HEALTHY'
+  number: [1, 2, 3, 4, 6, 7, 8, 9, 10 ,11, 12 ,13, 14, 15, 16, 17, 18] #[5]
+  path_to_meta: "D:\\Meta\\HEALTHY.csv" #TODO
+  id_name: 'Healthy'
+
+STUDENT:
+  path_to_directory: 'D://STUDENTS'
+  number:  [1, 2, 3, 4, 5, 6, 7, 8, 9, 10 ,11, 12 ,13, 14, 15, 16] #[]
+  path_to_meta: "D:\\Meta\\STUDENTS.csv" #TODO
+  id_name: 'student'
+
+output_data: #TODO remove
+  path_to_save: 'data\feature_extraction.csv'
+  fill_missing: None #mean_by_dataset #mean_by_patient
+  aggregate: None #by_hand_2LR #by_hand_4 #by_hand_m
+
+
+feature_extractor:
+  hand:
+    path_to_point_folder: 'mannual_point' #'auto_algorithm_hand' #'mannual_point'
+    algorithm_filtering: 'by_low_amplitude'
+    threshold_aplitude: 10
+    feature_type: ['NumA', 'AvgFrq', 'VarFrq', 'AvgVopen', 'AvgVclose', 'AvgA', 'VarA', 'VarVopen', 'VarVclose', 'DecA','DecV']
+    exercise: ['FT', 'OC', 'PS']
+    norm_coeff: 1.5 #TODO calc and realize
+    start: 100
+    stop: 1700
+
+  face:
+    path_to_point_folder: 'mannual_point_face' #'auto_algorithm_face' #'mannual_point_face'
+    algorithm_filtering: 'by_low_amplitude'
+    threshold_aplitude: 0.2
+    feature_type: ['NumAF', 'AvgFrqF','VarFrqF','AvgVopen','AvgVclose','AvgA','VarA','VarVopen','VarVclose','DecFA','DecFV', 'Length']
+    exercise:
+      'p5': ['AU12']
+      'p11': ['AU4']
+    number_movements: 10
+    frame_rate: 60 #TODO calc from every video
+    threshold: 7 #TODO
+
+  em:
+    frame_number: 'mean'
+    frame_au_agg: 'mean' #max
+    median_image: True #fast calculation
+    feature_type: ['Anger', 'Disgust', 'Fear','Happiness','Sadness','Surprise']
+    exercise: ['DA','DI'] #p13 #'DA',
+
+  tremor:
+    key_point: ['FORE_TIP']
+    feature_type: ['Fmean', 'Amean', 'Fmax', 'Amax']
+
+
+
+
+

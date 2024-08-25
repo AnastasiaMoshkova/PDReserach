@@ -1,0 +1,50 @@
+class_name:
+  _target_: checking_data.check.CheckData
+
+defaults:
+  - _self_
+  - hydra: default
+
+mode: ['hand'] #['hand', 'face', 'em', 'tremor'] #TODO different task
+save_plot: True
+
+PD:
+  path_to_directory: 'D://PD'
+  number: []
+  id_name: 'Patient'
+
+HEALTHY:
+  path_to_directory: 'D://HEALTHY'
+  number: [] #[5]
+  id_name: 'Healthy'
+
+STUDENT:
+  path_to_directory: 'D://STUDENTS'
+  number:  [16] #[]
+  id_name: 'student'
+
+
+hand:
+  path_to_mannual_point: 'mannual_point'
+  path_to_auto_point: 'auto_algorithm_hand'
+  exercise: ['leapRecording1_L.lmt','leapRecording1_R.lmt','leapRecording2_L.lmt','leapRecording2_R.lmt','leapRecording3_L.lmt','leapRecording3_R.lmt']
+  length_threshold: 1700
+
+face:
+  path_to_mannual_point: 'mannual_point_face'
+  path_to_auto_point: 'auto_algorithm_face'
+  exercise:
+    'p5': [ 'AU12' ]
+    'p11': [ 'AU4' ]
+  number_movements: 10
+  frame_rate: 60 #TODO calc from every video
+
+em:
+  exercise: ['p1', 'p12', 'p13']
+
+tremor:
+  exercise: ['leapRecordingTR_L.lmt','leapRecordingTR_R.lmt']
+
+
+
+task_name: data_verification

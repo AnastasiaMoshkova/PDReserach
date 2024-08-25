@@ -1,0 +1,2 @@
+algorithm_class:
+  _target_: automarking.adaptive.Adaptive

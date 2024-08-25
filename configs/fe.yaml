@@ -1,0 +1,7 @@
+defaults:
+  - _self_
+  - hydra: default
+  - feature_extraction: feature_extraction
+  - feature: feature
+
+task_name: feature_extraction

@@ -1,0 +1,105 @@
+class_name:
+  _target_: ml_cls.multi_classification.MultiClf
+
+#features: ['Length_AU4_p11', 'VarA_AU4_p11', 'Length_AU12_p5',  'VarA_AU12_p5', 'DecFV_AU12_p5',  'DI_Surprise', 'VarFrq_FT', 'VarVopen_FT', 'VarA_FT', 'NumA_FT', 'AvgVopen_OC', 'VarVopen_PS', 'VarA_PS']
+#features: ['DI_Disgust','DI_Sadness','DI_Surprise','DecA_PS','VarVopen_AU4_p11','VarA_AU4_p11','AvgVopen_PS','Length_AU4_p11','Length_AU12_p5','AvgVopen_AU12_p5','AvgVopen_OC','NumA_OC','AvgVopen_FT','VarVopen_PS']
+features: ['VarFrq_PS','AvgFrqF_AU4_p11','DA_Surprise','AvgVopen_AU4_p11','DecFV_AU4_p11','DI_Happiness','VarVopen_PS','DI_Disgust','AvgVopen_PS','VarA_FT','AvgA_OC','AvgVopen_FT','NumA_PS','VarVclose_FT','AvgFrqF_AU12_p5','NumA_OC','DecA_FT','AvgVopen_OC','AvgVclose_AU12_p5','AvgFrq_FT','DA_Anger','Length_AU12_p5']
+#features: ['AvgFrqF_AU12_p5','AvgVopen_AU12_p5','Length_AU12_p5','AvgVclose_AU4_p11','Length_AU4_p11','DI_Disgust','NumA_FT','AvgVopen_FT','VarVopen_FT','AvgVopenDiff_FT','AvgVopen_OC','VarA_OC','VarVopen_OC','AvgVopen_PS','AvgA_PS','VarVopen_PS']
+#features: ['VarA_FT', 'AvgFrqF_AU12_p5', 'AvgVopen_PS', 'NumA_FT', 'NumA_PS', 'AvgA_OC', 'NumA_OC', 'AvgVopen_FT', 'VarVopen_OC', 'DI_Disgust', 'DI_Happiness', 'Length_AU12_p5']
+datasets: ['PD', 'HEALTHY', 'STUDENT']
+classifiers: ['NB', 'DT', 'RF', 'SVM', 'XGBoost', 'KNN', 'LDA']
+confusion_matrix: True
+
+F1: ['macro', 'micro', 'weighted']
+print_console: ['balanced_accuracy','accuracy','f1_micro', 'f1_macro','f1_weighted','class0', 'class1', 'class2', 'class3', 'HEALTHY', 'STUDENT', 'PD', 'data_class0', 'data_class1', 'data_class2', 'data_class3','train_data']
+
+
+target_regression:
+  column: 'stage'
+  replace:
+    2.5: 2.5
+    3.5: 3.5
+
+target: 'class'
+
+cv:
+  folds: 8
+
+NB:
+  pipeline:
+    scaler:
+      _target_: ml_cls.classificators.scalers.StandardScalerCustom
+    dim_red: null
+  config:
+    _target_: ml_cls.classificators.clf.NB
+
+DT:
+  pipeline:
+    scaler:
+      _target_: ml_cls.classificators.scalers.StandardScalerCustom
+    dim_red: null
+  config:
+    _target_: ml_cls.classificators.clf.DT
+    random_state: 0
+    max_depth: 5 #null
+    max_features: null #'sqrt', 'log2'
+    criterion: 'gini' #“entropy”, “log_loss”
+    min_samples_split: 2
+    class_weight: null #{class_label: weight}
+    min_samples_leaf: 1
+
+RF:
+  pipeline:
+    scaler: null
+    dim_red: null
+  config:
+    _target_: ml_cls.classificators.clf.RF
+    random_state: 0
+    n_estimators: 1000
+    max_depth: 5
+    max_features: null #'sqrt', 'log2'
+    criterion: 'gini' #“entropy”, “log_loss”
+    min_samples_split: 2
+    class_weight: null #{class_label: weight}
+    min_samples_leaf: 1
+
+
+XGBoost:
+  pipeline:
+    scaler: null
+    dim_red: null
+  config:
+    _target_: ml_cls.classificators.clf.XGBoost
+    n_estimators: 500
+    max_depth: 5
+    learning_rate: 0.01
+    objective: 'binary:logistic'
+
+SVM:
+  pipeline:
+    scaler: null
+    dim_red: null
+  config:
+    _target_: ml_cls.classificators.clf.SVM
+    kernel: 'linear' #'rbf'
+
+KNN:
+  pipeline:
+    scaler: null
+    dim_red: null
+  config:
+    _target_: ml_cls.classificators.clf.KNN
+    n_neighbors: 3
+
+LDA:
+  pipeline:
+    scaler: null
+    dim_red: null
+  config:
+    _target_: ml_cls.classificators.clf.LDA
+
+
+
+
+
+

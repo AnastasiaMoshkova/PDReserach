@@ -1,0 +1,2 @@
+run:
+  dir: experiments/${task_name}/runs/${now:%Y-%m-%d}_${now:%H-%M-%S}

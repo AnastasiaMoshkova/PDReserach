@@ -1,0 +1,94 @@
+class_name:
+  _target_: ml_cls.regression.Regression
+
+#features: ['Length_AU4_p11', 'VarA_AU4_p11', 'Length_AU12_p5',  'VarA_AU12_p5', 'DecFV_AU12_p5',  'DI_Surprise', 'VarFrq_FT', 'VarVopen_FT', 'VarA_FT', 'NumA_FT', 'AvgVopen_OC', 'VarVopen_PS', 'VarA_PS']
+#features: ['DI_Disgust','DI_Sadness','DI_Surprise','DecA_PS','VarVopen_AU4_p11','VarA_AU4_p11','AvgVopen_PS','Length_AU4_p11','Length_AU12_p5','AvgVopen_AU12_p5','AvgVopen_OC','NumA_OC','AvgVopen_FT','VarVopen_PS']
+features: ['AvgVopen_OC','AvgVopen_FT','VarVopen_PS','AvgVopen_PS','AvgVopen_AU12_p5','VarA_AU4_p11','Length_AU4_p11','AvgVopen_AU4_p11','DI_Surprise',]
+datasets: ['PD', 'HEALTHY', 'STUDENT']
+classifiers: ['DT', 'RF', 'SVR', 'XGBoost', 'KNN']
+confusion_matrix: False
+
+print_console: ['r2', 'rmse', 'mae', 'stage0', 'stage1', 'stage2', 'stage3', 'HEALTHY', 'STUDENT', 'PD', 'data_stage0', 'data_stage1', 'data_stage2', 'data_stage3','train_data']
+
+
+feature_selection:
+  greedy:
+    metric: 'r2'
+    track: 'cv_fix' #'train_test'# 'cv_k_folds' #'cv_loo'
+
+target_regression:
+  column: 'stage'
+  replace:
+    2.5: 3
+    3.5: 3
+
+target: 'regr'
+
+cv:
+  folds: 4
+
+
+DT:
+  pipeline:
+    scaler: null
+    dim_red: null
+  config:
+    _target_: ml_cls.classificators.regr.DT
+    random_state: 0
+    max_depth: 5 #null
+    max_features: null #'sqrt', 'log2'
+    criterion: 'absolute_error' #'poisson', 'friedman_mse', 'squared_error', 'absolute_error'
+    min_samples_split: 2
+    min_samples_leaf: 1
+
+RF:
+  pipeline:
+    scaler: null
+    dim_red: null
+  config:
+    _target_: ml_cls.classificators.regr.RF
+    random_state: 0
+    n_estimators: 1000
+    max_depth: 5
+    max_features: null #'sqrt', 'log2'
+    criterion: 'absolute_error' #'poisson', 'friedman_mse', 'squared_error', 'absolute_error'
+    min_samples_split: 2
+    min_samples_leaf: 1
+
+
+XGBoost:
+  pipeline:
+    scaler:
+      _target_: ml_cls.classificators.scalers.StandardScalerCustom
+    dim_red: null
+  config:
+    _target_: ml_cls.classificators.regr.XGBoost
+    n_estimators: 500
+    max_depth: 5
+    learning_rate: 0.01
+    objective: 'reg:absoluteerror'
+
+SVR:
+  pipeline:
+    scaler:
+      _target_: ml_cls.classificators.scalers.StandardScalerCustom
+    dim_red: null
+  config:
+    _target_: ml_cls.classificators.regr.SVR
+    C: 1
+    epsilon: 0.1
+
+KNN:
+  pipeline:
+    scaler:
+      _target_: ml_cls.classificators.scalers.StandardScalerCustom
+    dim_red: null
+  config:
+    _target_: ml_cls.classificators.regr.KNN
+    n_neighbors: 3
+
+
+
+
+
+

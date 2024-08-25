@@ -1,0 +1,121 @@
+class_name:
+  _target_: ml_cls.optuna_clf.OptunaClf
+
+features: ['Length_AU4_p11', 'AvgVopen_AU4_p11', 'VarA_AU4_p11',  'AvgVopen_AU12_p5', 'Length_AU12_p5',  'VarA_AU12_p5', 'DecFV_AU12_p5',  'DI_Surprise', 'DI_Happiness','VarFrq_FT', 'VarVopen_FT', 'VarA_FT', 'NumA_FT', 'AvgVopen_OC', 'VarFrq_OC', 'VarVopen_PS', 'VarA_PS']
+#features: ['DI_Disgust','DI_Sadness','DI_Surprise','DecA_PS','VarVopen_AU4_p11','VarA_AU4_p11','AvgVopen_PS','Length_AU4_p11','Length_AU12_p5','AvgVopen_AU12_p5','AvgVopen_OC','NumA_OC','AvgVopen_FT','VarVopen_PS']
+confusion_matrix: False
+datasets: ['PD', 'HEALTHY']
+scalers: [null, 'minmax', 'standard', 'robust']
+dim_red: ["PCA", null]
+classifiers: ['DT', 'SVM', 'KNN', 'RF', 'XGBoost']
+scoring: 'r2'
+trials: 100
+
+
+target_regression:
+  column: 'stage'
+  replace:
+    2.5: 2.5
+    3.5: 3.5
+
+target: 'regr'
+
+cv:
+  folds: 8
+  type: 'cv_loo' #'cv_k_folds'
+
+
+DT:
+  _target_: ml_cls.classificators.regr.DT
+  random_state: 0
+  suggest_int:
+    max_depth:
+      first: 3
+      last: 20
+      step: 1
+    min_samples_split:
+      first: 2
+      last: 10
+      step: 2
+    min_samples_leaf:
+      first: 1
+      last: 10
+      step: 1
+  suggest_categorical:
+    max_features: [ null, 'sqrt', 'log2']
+    criterion: ['absolute_error', 'poisson', 'friedman_mse', 'squared_error', 'absolute_error']
+
+RF:
+  _target_: ml_cls.classificators.regr.RF
+  random_state: 0
+  suggest_int:
+    max_depth:
+      first: 3
+      last: 20
+      step: 1
+    min_samples_split:
+      first: 2
+      last: 10
+      step: 2
+    min_samples_leaf:
+      first: 1
+      last: 10
+      step: 1
+    n_estimators:
+      first: 500
+      last: 2000
+      step: 500
+  suggest_categorical:
+    max_features: [ null, 'sqrt', 'log2' ]
+    criterion: ['absolute_error', 'poisson', 'friedman_mse', 'squared_error', 'absolute_error']
+
+
+XGBoost:
+  _target_: ml_cls.classificators.regr.XGBoost
+  suggest_int:
+    max_depth:
+      first: 3
+      last: 20
+      step: 1
+    n_estimators:
+      first: 500
+      last: 2000
+      step: 500
+  suggest_categorical:
+    objective: ['reg:absoluteerror', 'reg:squaredlogerror', 'reg:logistic', 'reg:pseudohubererror', 'reg:absoluteerror', 'reg:quantileerror']
+    learning_rate: [0.001, 0.01, 0.05, 0.1, 1]
+
+SVM:
+  _target_: ml_cls.classificators.regr.SVR
+  kernel: 'linear' #'rbf'
+  suggest_categorical:
+    gamma: [ 'scale', 'auto']
+    kernel: ['linear', 'poly', 'rbf', 'sigmoid']
+    degree: [3,4,5,6,7]
+    C: [0.1,0.5,1,2]
+
+KNN:
+  _target_: ml_cls.classificators.regr.KNN
+  suggest_int:
+    n_neighbors:
+      first: 1
+      last: 19
+      step: 2
+  suggest_categorical:
+    metric: ['euclidean', 'manhattan', 'minkowski']
+    weights: ['uniform', 'distance']
+
+
+
+PCA:
+  suggest_int:
+    pca_n_components:
+      first: 2
+      last: 10
+      step: 1
+
+
+
+
+
+

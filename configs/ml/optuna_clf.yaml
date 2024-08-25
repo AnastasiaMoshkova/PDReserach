@@ -1,0 +1,154 @@
+class_name:
+  _target_: ml_cls.optuna_clf.OptunaClf
+
+#features: ['DecA_PS', 'AvgVopen_AU12_p5', 'Length_AU4_p11', 'DI_Surprise', 'AvgVopen_PS'] #['Length_AU4_p11', 'AvgVopen_AU4_p11', 'VarA_AU4_p11',  'AvgVopen_AU12_p5', 'Length_AU12_p5',  'VarA_AU12_p5', 'DecFV_AU12_p5',  'DI_Surprise', 'DI_Happiness','VarFrq_FT', 'VarVopen_FT', 'VarA_FT', 'NumA_FT', 'AvgVopen_OC', 'VarFrq_OC', 'VarVopen_PS', 'VarA_PS']
+#features: ['DI_Disgust','DI_Sadness','DI_Surprise','DecA_PS','VarVopen_AU4_p11','VarA_AU4_p11','AvgVopen_PS','Length_AU4_p11','Length_AU12_p5','AvgVopen_AU12_p5','AvgVopen_OC','NumA_OC','AvgVopen_FT','VarVopen_PS']
+#features: ['VarFrq_PS','AvgFrqF_AU4_p11','DA_Surprise','AvgVopen_AU4_p11','DecFV_AU4_p11','DI_Happiness','VarVopen_PS','DI_Disgust','AvgVopen_PS','VarA_FT','AvgA_OC','AvgVopen_FT','NumA_PS','VarVclose_FT','AvgFrqF_AU12_p5','NumA_OC','DecA_FT','AvgVopen_OC','AvgVclose_AU12_p5','AvgFrq_FT','DA_Anger','Length_AU12_p5']
+features: ['AvgFrqF_AU12_p5','AvgVopen_AU12_p5','Length_AU12_p5','AvgVclose_AU4_p11','Length_AU4_p11','DA_Surprise','DA_Disgust','DI_Disgust','NumA_FT','AvgVopen_FT','VarVopen_FT','AvgVopenDiff_FT','DecVDiff_FT','AvgVopen_OC','VarA_OC','VarVopen_OC','AvgADiff_OC','AvgVopen_PS','AvgA_PS','VarVopen_PS','AvgVopenDiff_PS']
+confusion_matrix: False
+datasets: ['PD', 'HEALTHY']
+scalers: [null, 'minmax', 'standard', 'robust']
+dim_red: ["PCA", null]
+classifiers: ['XGBoost'] #['LR','NB', 'DT', 'SVM', 'KNN', 'LDA', 'RF', 'XGBoost','LGBM']
+scoring: 'balanced_accuracy'
+trials: 100
+
+target_regression:
+  column: 'stage'
+  replace:
+    2.5: 2.5
+    3.5: 3.5
+
+target: 'class'
+
+cv:
+  folds: 8
+  type: 'cv_loo' #'cv_k_folds'
+
+
+
+NB:
+  _target_: ml_cls.classificators.clf.NB
+
+DT:
+  _target_: ml_cls.classificators.clf.DT
+  random_state: 0
+  suggest_int:
+    max_depth:
+      first: 3
+      last: 20
+      step: 1
+    min_samples_split:
+      first: 2
+      last: 10
+      step: 2
+    min_samples_leaf:
+      first: 1
+      last: 10
+      step: 1
+  suggest_categorical:
+    max_features: [ null, 'sqrt', 'log2']
+    criterion: ['gini', 'entropy', 'log_loss']
+    class_weight: [null] #{class_label: weight}
+
+RF:
+  _target_: ml_cls.classificators.clf.RF
+  random_state: 0
+  suggest_int:
+    max_depth:
+      first: 3
+      last: 20
+      step: 1
+    min_samples_split:
+      first: 2
+      last: 10
+      step: 2
+    min_samples_leaf:
+      first: 1
+      last: 10
+      step: 1
+    n_estimators:
+      first: 500
+      last: 2000
+      step: 500
+  suggest_categorical:
+    max_features: [ null, 'sqrt', 'log2' ]
+    criterion: [ 'gini', 'entropy', 'log_loss' ]
+    class_weight: [ null ] #{class_label: weight}
+
+
+XGBoost:
+  _target_: ml_cls.classificators.clf.XGBoost
+  suggest_int:
+    max_depth:
+      first: 3
+      last: 20
+      step: 1
+    n_estimators:
+      first: 500
+      last: 2000
+      step: 500
+  suggest_categorical:
+    objective: ['multi:softmax', 'multi:softprob']
+    learning_rate: [0.001, 0.01, 0.05, 0.1, 1]
+
+SVM:
+  _target_: ml_cls.classificators.clf.SVM
+  kernel: 'linear' #'rbf'
+  suggest_categorical:
+    gamma: [ 'scale', 'auto']
+    kernel: ['linear', 'poly', 'rbf', 'sigmoid']
+    degree: [3,4,5]
+    C: [0.1,0.5,1]
+
+KNN:
+  _target_: ml_cls.classificators.clf.KNN
+  suggest_int:
+    n_neighbors:
+      first: 1
+      last: 19
+      step: 2
+  suggest_categorical:
+    metric: ['euclidean', 'manhattan', 'minkowski']
+    weights: ['uniform', 'distance']
+
+LDA:
+  _target_: ml_cls.classificators.clf.LDA
+  suggest_categorical:
+    solver: ['svd', 'lsqr', 'eigen']
+
+LR:
+  _target_: ml_cls.classificators.clf.LR
+  suggest_categorical:
+    penalty: ['l1', 'l2', null]
+    #C: [0.1, 0.5, 1, 2]
+    solver: ['saga']
+
+LGBM:
+  _target_: ml_cls.classificators.clf.LGBM
+  suggest_categorical:
+    num_leaves: [21,31,51]
+    objective: ['multiclass']
+    #reg_alpha: [0.1, 0.5, 1, 2]
+    #reg_lambda: [0.1, 0.5, 1, 2]
+    #boosting_type: ['gbdt','dart','rf']
+    verbose: [-1]
+  suggest_int:
+    n_estimators:
+      first: 50
+      last: 200
+      step: 50
+
+
+PCA:
+  suggest_int:
+    pca_n_components:
+      first: 2
+      last: 15
+      step: 1
+
+
+
+
+
+

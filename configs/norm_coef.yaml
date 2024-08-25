@@ -1,0 +1,14 @@
+defaults:
+  - _self_
+  - hydra: default
+
+class_name:
+  _target_: normcoef.normcoef.NormCoef
+
+task_name: norm_coefficient
+
+dataset_type: ['HEALTHY', 'STUDENT']
+mode: 'hand'
+exersice: ['FT', 'OC']
+gender: ['Male', 'Female']
+aggregation_type: ['mean', 'median', 'max']

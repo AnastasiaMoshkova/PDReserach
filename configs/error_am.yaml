@@ -1,0 +1,39 @@
+class_name:
+  _target_: error_automarking.error_automarking.ErrorAutoMarking
+
+defaults:
+  - _self_
+  - hydra: default
+
+task_name: error_automarking
+
+dataset_type: ['PD', 'HEALTHY', 'STUDENT']
+mode: ['hand', 'face']
+error_calculation_save: True
+round: 2
+path: 'D:\PDResearch\experiments\feature_extraction\runs\'
+
+folder_mannual: '2024-07-28_02-16-43'
+folder_auto: '2024-07-28_02-16-43'
+
+hand:
+  path_to_manual: 'hand_feature.csv'
+  path_to_auto: 'hand_feature.csv'
+  feature: ['NumA_FT', 'AvgFrq_FT', 'VarFrq_FT',
+       'AvgVopen_FT', 'AvgVclose_FT', 'AvgA_FT', 'VarA_FT', 'VarVopen_FT',
+       'VarVclose_FT', 'DecA_FT', 'DecV_FT', 'NumA_OC', 'AvgFrq_OC',
+       'VarFrq_OC', 'AvgVopen_OC', 'AvgVclose_OC', 'AvgA_OC', 'VarA_OC',
+       'VarVopen_OC', 'VarVclose_OC', 'DecA_OC', 'DecV_OC', 'NumA_PS',
+       'AvgFrq_PS', 'VarFrq_PS', 'AvgVopen_PS', 'AvgVclose_PS', 'AvgA_PS',
+       'VarA_PS', 'VarVopen_PS', 'VarVclose_PS', 'DecA_PS', 'DecV_PS']
+
+face:
+  path_to_manual: 'face_feature.csv'
+  path_to_auto: 'face_feature.csv'
+  feature: ['NumA_AU4_p11', 'AvgFrqF_AU4_p11', 'VarFrqF_AU4_p11',
+       'AvgVopen_AU4_p11', 'AvgVclose_AU4_p11', 'AvgA_AU4_p11', 'VarA_AU4_p11',
+       'VarVopen_AU4_p11', 'VarVclose_AU4_p11', 'DecFA_AU4_p11',
+       'DecFV_AU4_p11', 'Length_AU4_p11', 'NumA_AU12_p5', 'AvgFrqF_AU12_p5',
+       'VarFrqF_AU12_p5', 'AvgVopen_AU12_p5', 'AvgVclose_AU12_p5',
+       'AvgA_AU12_p5', 'VarA_AU12_p5', 'VarVopen_AU12_p5', 'VarVclose_AU12_p5',
+       'DecFA_AU12_p5', 'DecFV_AU12_p5', 'Length_AU12_p5']

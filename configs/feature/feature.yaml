@@ -1,0 +1,38 @@
+NumA:
+  _target_: feature_extraction.feature.NumA
+AvgFrq:
+  _target_: feature_extraction.feature.AvgFrq
+VarFrq:
+  _target_: feature_extraction.feature.VarFrq
+AvgVopen:
+  _target_: feature_extraction.feature.AvgVopen
+AvgVclose:
+  _target_: feature_extraction.feature.AvgVclose
+AvgA:
+  _target_: feature_extraction.feature.AvgA
+VarA:
+  _target_: feature_extraction.feature.VarA
+VarVopen:
+  _target_: feature_extraction.feature.VarVopen
+VarVclose:
+  _target_: feature_extraction.feature.VarVclose
+DecA:
+  _target_: feature_extraction.feature.DecA
+DecV:
+  _target_: feature_extraction.feature.DecV
+DecFA:
+  _target_: feature_extraction.feature.DecFA
+DecFV:
+  _target_: feature_extraction.feature.DecFV
+Length:
+  _target_: feature_extraction.feature.Length
+AvgFrqF:
+  _target_: feature_extraction.feature.AvgFrqF
+VarFrqF:
+  _target_: feature_extraction.feature.VarFrqF
+DecValueA:
+  _target_: feature_extraction.feature.DecValueA
+DecValueV:
+  _target_: feature_extraction.feature.DecValueV
+NumAF:
+  _target_: feature_extraction.feature.NumAF

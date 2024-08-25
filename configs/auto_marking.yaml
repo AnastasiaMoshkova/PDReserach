@@ -1,0 +1,9 @@
+class_name:
+  _target_: automarking.automarking.AutoMarking
+
+defaults:
+  - _self_
+  - hydra: default
+  - automarking: automarking
+
+task_name: automarking

@@ -1,0 +1,112 @@
+class_name:
+  _target_: ml_cls.feature_selection.greedy_algorithm.GreedyAlgorithm
+
+#features: ['Length_AU4_p11', 'VarA_AU4_p11', 'Length_AU12_p5',  'VarA_AU12_p5', 'DecFV_AU12_p5',  'DI_Surprise', 'VarFrq_FT', 'VarVopen_FT', 'VarA_FT', 'NumA_FT', 'AvgVopen_OC', 'VarVopen_PS', 'VarA_PS']
+#features: ['DI_Disgust','DI_Sadness','DI_Surprise','DecA_PS','VarVopen_AU4_p11','VarA_AU4_p11','AvgVopen_PS','Length_AU4_p11','Length_AU12_p5','AvgVopen_AU12_p5','AvgVopen_OC','NumA_OC','AvgVopen_FT','VarVopen_PS']
+#features: ['NumA_FT','AvgFrq_FT','VarFrq_FT','AvgVopen_FT','AvgVclose_FT','AvgA_FT','VarA_FT','VarVopen_FT','VarVclose_FT','DecA_FT','DecV_FT','NumA_OC','AvgFrq_OC','VarFrq_OC','AvgVopen_OC','AvgVclose_OC','AvgA_OC','VarA_OC','VarVopen_OC','VarVclose_OC','DecA_OC','DecV_OC','NumA_PS','AvgFrq_PS','VarFrq_PS','AvgVopen_PS','AvgVclose_PS','AvgA_PS','VarA_PS','VarVopen_PS','VarVclose_PS','DecA_PS','DecV_PS','NumA_AU4_p11','AvgFrqF_AU4_p11','VarFrqF_AU4_p11','AvgVopen_AU4_p11','AvgVclose_AU4_p11','AvgA_AU4_p11','VarA_AU4_p11','VarVopen_AU4_p11','VarVclose_AU4_p11','DecFA_AU4_p11','DecFV_AU4_p11','Length_AU4_p11','NumA_AU12_p5','AvgFrqF_AU12_p5','VarFrqF_AU12_p5','AvgVopen_AU12_p5','AvgVclose_AU12_p5','AvgA_AU12_p5','VarA_AU12_p5','VarVopen_AU12_p5','VarVclose_AU12_p5','DecFA_AU12_p5','DecFV_AU12_p5','Length_AU12_p5','DA_Anger','DA_Disgust','DA_Fear','DA_Happiness','DA_Sadness','DA_Surprise','DI_Anger','DI_Disgust','DI_Fear','DI_Happiness','DI_Sadness','DI_Surprise','NumADiff_FT','AvgFrqDiff_FT','VarFrqDiff_FT','AvgVopenDiff_FT','AvgVcloseDiff_FT','AvgADiff_FT','VarADiff_FT','VarVopenDiff_FT','VarVcloseDiff_FT','DecADiff_FT','DecVDiff_FT','NumADiff_OC','AvgFrqDiff_OC','VarFrqDiff_OC','AvgVopenDiff_OC','AvgVcloseDiff_OC','AvgADiff_OC','VarADiff_OC','VarVopenDiff_OC','VarVcloseDiff_OC','DecADiff_OC','DecVDiff_OC','NumADiff_PS','AvgFrqDiff_PS','VarFrqDiff_PS','AvgVopenDiff_PS','AvgVcloseDiff_PS','AvgADiff_PS','VarADiff_PS','VarVopenDiff_PS','VarVcloseDiff_PS','DecADiff_PS','DecVDiff_PS']
+features: ['AvgFrqF_AU12_p5','AvgVopen_AU12_p5','Length_AU12_p5','AvgVclose_AU4_p11','Length_AU4_p11','DI_Disgust','NumA_FT','AvgVopen_FT','VarVopen_FT','AvgVopen_OC','VarA_OC','VarVopen_OC','AvgVopen_PS','AvgA_PS','VarVopen_PS', 'VarFrq_PS','AvgFrqF_AU4_p11','DA_Surprise','DecFV_AU4_p11','DI_Happiness','VarA_FT','AvgA_OC','NumA_PS','VarVclose_FT','NumA_OC','DecA_FT','AvgVclose_AU12_p5','AvgFrq_FT','DA_Anger']
+datasets: ['PD', 'HEALTHY', 'STUDENT']
+classifiers: ['NB'] #,'NB', 'DT', 'RF', 'SVM', 'XGBoost', 'KNN', 'LDA']
+confusion_matrix: False
+
+F1: ['macro', 'micro', 'weighted']
+print_console: ['accuracy','f1_micro', 'f1_macro','f1_weighted','class0', 'class1', 'class2', 'class3', 'HEALTHY', 'STUDENT', 'PD', 'data_class0', 'data_class1', 'data_class2', 'data_class3','train_data']
+
+metric: 'balanced_accuracy' #r2
+track: 'cv_fix' #'train_test'# 'cv_k_folds' #'cv_loo'
+
+correlation_threshold: 0.9
+method_selection: 'chi2' #f_regression, f_classif, chi2
+k_best: 30
+
+target_regression:
+  column: 'stage'
+  replace:
+    2.5: 2.5
+    3.5: 3.5
+
+target: 'class'
+
+cv:
+  folds: 8
+  random: False
+
+
+NB:
+  pipeline:
+    scaler:
+      _target_: ml_cls.classificators.scalers.StandardScalerCustom
+    dim_red: null
+  config:
+    _target_: ml_cls.classificators.clf.NB
+
+DT:
+  pipeline:
+    scaler:
+      _target_: ml_cls.classificators.scalers.StandardScalerCustom
+    dim_red: null
+  config:
+    _target_: ml_cls.classificators.clf.DT
+    random_state: 0
+    max_depth: 5 #null
+    max_features: null #'sqrt', 'log2'
+    criterion: 'gini' #“entropy”, “log_loss”
+    min_samples_split: 2
+    class_weight: null #{class_label: weight}
+    min_samples_leaf: 1
+
+RF:
+  pipeline:
+    scaler: null
+    dim_red: null
+  config:
+    _target_: ml_cls.classificators.clf.RF
+    random_state: 0
+    n_estimators: 1000
+    max_depth: 5
+    max_features: null #'sqrt', 'log2'
+    criterion: 'gini' #“entropy”, “log_loss”
+    min_samples_split: 2
+    class_weight: null #{class_label: weight}
+    min_samples_leaf: 1
+
+
+XGBoost:
+  pipeline:
+    scaler: null
+    dim_red: null
+  config:
+    _target_: ml_cls.classificators.clf.XGBoost
+    n_estimators: 500
+    max_depth: 5
+    learning_rate: 0.01
+    objective: 'binary:logistic'
+
+SVM:
+  pipeline:
+    scaler: null
+    dim_red: null
+  config:
+    _target_: ml_cls.classificators.clf.SVM
+    kernel: 'linear' #'rbf'
+
+KNN:
+  pipeline:
+    scaler: null
+    dim_red: null
+  config:
+    _target_: ml_cls.classificators.clf.KNN
+    n_neighbors: 3
+
+LDA:
+  pipeline:
+    scaler: null
+    dim_red: null
+  config:
+    _target_: ml_cls.classificators.clf.LDA
+
+
+
+
+
+

@@ -1,0 +1,102 @@
+class_name:
+  _target_: ml_cls.binary_classification.BinaryClf
+
+#features: ['Length_AU4_p11', 'VarA_AU4_p11', 'Length_AU12_p5',  'VarA_AU12_p5', 'DecFV_AU12_p5',  'DI_Surprise', 'VarFrq_FT', 'VarVopen_FT', 'VarA_FT', 'NumA_FT', 'AvgVopen_OC', 'VarVopen_PS', 'VarA_PS']
+features: ['DI_Disgust','DI_Sadness','DI_Surprise','DecA_PS','VarVopen_AU4_p11','VarA_AU4_p11','AvgVopen_PS','Length_AU4_p11','Length_AU12_p5','AvgVopen_AU12_p5','AvgVopen_OC','NumA_OC','AvgVopen_FT','VarVopen_PS']
+datasets: ['PD', 'HEALTHY', 'STUDENT']
+classifiers: ['NB', 'DT', 'RF', 'SVM', 'XGBoost', 'KNN', 'LDA']
+confusion_matrix: True
+
+F1: ['binary', 'macro', 'micro', 'weighted']
+print_console: ['accuracy','balanced_accuracy','f1_binary','stage0', 'stage1', 'stage2', 'stage3', 'HEALTHY', 'STUDENT', 'PD', 'data_stage0', 'data_stage1', 'data_stage2', 'data_stage3','train_data']
+
+
+target_regression:
+  column: 'stage'
+  replace:
+    2.5: 3
+    3.5: 3
+
+target: 'class'
+
+cv:
+  folds: 8
+  #type: 'cv_fix' #'train_test'# 'cv_k_folds' #'cv_loo'
+
+NB:
+  pipeline:
+    scaler:
+      _target_: ml_cls.classificators.scalers.StandardScalerCustom
+    dim_red: null
+  config:
+    _target_: ml_cls.classificators.clf.NB
+
+DT:
+  pipeline:
+    scaler: null
+    dim_red: null
+  config:
+    _target_: ml_cls.classificators.clf.DT
+    random_state: 0
+    max_depth: 5 #null
+    max_features: null #'sqrt', 'log2'
+    criterion: 'gini' #“entropy”, “log_loss”
+    min_samples_split: 2
+    class_weight: null #{class_label: weight}
+    min_samples_leaf: 1
+
+RF:
+  pipeline:
+    scaler: null
+    dim_red: null
+  config:
+    _target_: ml_cls.classificators.clf.RF
+    random_state: 0
+    n_estimators: 1000
+    max_depth: 5
+    max_features: null #'sqrt', 'log2'
+    criterion: 'gini' #“entropy”, “log_loss”
+    min_samples_split: 2
+    class_weight: null #{class_label: weight}
+    min_samples_leaf: 1
+
+
+XGBoost:
+  pipeline:
+    scaler: null
+    dim_red: null
+  config:
+    _target_: ml_cls.classificators.clf.XGBoost
+    n_estimators: 500
+    max_depth: 5
+    learning_rate: 0.01
+    objective: 'binary:logistic'
+
+SVM:
+  pipeline:
+    scaler: null
+    dim_red: null
+  config:
+    _target_: ml_cls.classificators.clf.SVM
+    kernel: 'linear' #'rbf'
+
+KNN:
+  pipeline:
+    scaler: null
+    dim_red: null
+  config:
+    _target_: ml_cls.classificators.clf.KNN
+    n_neighbors: 3
+
+LDA:
+  pipeline:
+    scaler: null
+    dim_red: null
+  config:
+    _target_: ml_cls.classificators.clf.LDA
+
+
+
+
+
+
