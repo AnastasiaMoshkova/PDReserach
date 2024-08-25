@@ -8,6 +8,7 @@ __pycache__/
 
 # Project's directory
 notebooks/utils
+notebooks/.ipynb_checkpoints
 experiments
 data
 
