@@ -7,8 +7,8 @@ __pycache__/
 *.so
 
 # Project's directory
-notebooks/utils
-notebooks/.ipynb_checkpoints
+notebooks/utils/
+notebooks/.ipynb_checkpoints/
 experiments
 data
 
