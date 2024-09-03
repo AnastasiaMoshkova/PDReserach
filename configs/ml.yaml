@@ -7,7 +7,9 @@ path: 'D:\PDResearch\experiments\feature_extraction\runs\'
 folder: '2024-08-24_16-48-54' #'2024-08-18_17-52-58' #'2024-08-16_13-09-56' #'2024-08-11_22-22-00' #'2024-08-11_01-06-51' #'2024-08-05_02-24-14' #'2024-07-31_03-10-48' #'2024-07-31_02-24-08' #'2024-07-30_02-56-49' #auto '2024-07-29_23-34-45' #manual
 file: 'feature_dataset.csv'
 fill_DI_healthy: True
-fill_nan: '' #'fill_nan_by_knn_unsupervised' #'fill_nan_by_knn_supervised' #'fill_nan_by_user_mean'
+fill_nan: '' #'fill_nan_by_median_by_dataset' #'fill_nan_by_knn_unsupervised' #'fill_nan_by_knn_supervised' #'fill_nan_by_user_mean'
+sample_weight: True
+
 
 task_name: ml
 

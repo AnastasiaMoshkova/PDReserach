@@ -1,11 +1,14 @@
 import numpy as np
 import pandas as pd
 import os
+
+import sklearn
 from hydra.utils import instantiate
 from sklearn.metrics import accuracy_score
 from sklearn.metrics import f1_score
 from sklearn.metrics import confusion_matrix
 from sklearn.pipeline import make_pipeline
+from sklearn.utils.class_weight import compute_sample_weight,compute_class_weight
 import pandas as pd
 import os
 import optuna
@@ -40,8 +43,11 @@ class MLBase():
     def fill_nan_by_values_by_user(self): #TODO
         pass
 
-    def fill_nan_by_mean_by_dataset(self): #TODO
-        pass
+    def fill_nan_by_median_by_dataset(self, df, features): #TODO
+        imputer = SimpleImputer(missing_values=np.nan, keep_empty_features=True, strategy='median',
+                                fill_value=np.nan).set_output(transform="pandas")
+        df.loc[:, features] = imputer.fit_transform(df[features])
+        return df
 
     def fill_nan_by_knn_unsupervised(self, df, features): #TODO
         imputer = KNNImputer(n_neighbors=10, missing_values=np.nan).set_output(transform="pandas")
@@ -75,6 +81,8 @@ class MLBase():
             df = self.fill_nan_by_knn_supervised(df, features)
         elif self.config['fill_nan'] == 'fill_nan_by_knn_unsupervised':
             df = self.fill_nan_by_knn_unsupervised(df, features)
+        elif self.config['fill_nan'] == 'fill_nan_by_median_by_dataset':
+            df = self.fill_nan_by_median_by_dataset(df, features)
 
         return df
 
@@ -82,7 +90,13 @@ class MLBase():
         scaler = instantiate(self.config['ml'][clf]['pipeline']['scaler'])
         dim_red = instantiate(self.config['ml'][clf]['pipeline']['dim_red'])
         model = instantiate(self.config['ml'][clf]['config'])
-        cl = make_pipeline(scaler, dim_red, model)
+        cl = sklearn.pipeline.Pipeline(
+            [('scaler', scaler),
+            ('dim_red', dim_red),
+            ('model',model)]) #TODO
+        #class_weight = compute_class_weight(class_weight="balanced", classes=np.unique(train['class']), y=train['class'])
+        if self.config['sample_weight']:
+            cl.set_params(model__sample_weight=train['sample_weight'].values)
         clf = cl.fit(train[features], train[self.config['ml']['target']])
         test['pred'] = clf.predict(test[features])
         #print(clf.score(test[features],test[self.config['ml']['target']]))
@@ -106,6 +120,7 @@ class MLBase():
 
         data_train = pd.concat(train)
         data_test = pd.concat(test)
+        data_train['sample_weight'] = compute_sample_weight(class_weight="balanced", y=data_train['class'])
         return data_train, data_test
 
     def cv_group(self, df):
@@ -134,6 +149,7 @@ class MLBase():
         dfs_cv.append(df_cv)
         data_cv = pd.concat(dfs_cv)
         data_cv = self.cv_group(data_cv)
+        data_cv['sample_weight'] = compute_sample_weight(class_weight="balanced", y=data_cv['class'])
         return data_cv
 
     def fold_result(self, clf, features, train, test):

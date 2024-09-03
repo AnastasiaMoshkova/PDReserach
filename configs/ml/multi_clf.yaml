@@ -7,7 +7,7 @@ features: ['VarFrq_PS','AvgFrqF_AU4_p11','DA_Surprise','AvgVopen_AU4_p11','DecFV
 #features: ['AvgFrqF_AU12_p5','AvgVopen_AU12_p5','Length_AU12_p5','AvgVclose_AU4_p11','Length_AU4_p11','DI_Disgust','NumA_FT','AvgVopen_FT','VarVopen_FT','AvgVopenDiff_FT','AvgVopen_OC','VarA_OC','VarVopen_OC','AvgVopen_PS','AvgA_PS','VarVopen_PS']
 #features: ['VarA_FT', 'AvgFrqF_AU12_p5', 'AvgVopen_PS', 'NumA_FT', 'NumA_PS', 'AvgA_OC', 'NumA_OC', 'AvgVopen_FT', 'VarVopen_OC', 'DI_Disgust', 'DI_Happiness', 'Length_AU12_p5']
 datasets: ['PD', 'HEALTHY', 'STUDENT']
-classifiers: ['NB', 'DT', 'RF', 'SVM', 'XGBoost', 'KNN', 'LDA']
+classifiers: ['NB', 'DT', 'RF', 'SVM','KNN', 'LDA', 'XGBoost', 'ExtraTree']
 confusion_matrix: True
 
 F1: ['macro', 'micro', 'weighted']
@@ -97,6 +97,20 @@ LDA:
     dim_red: null
   config:
     _target_: ml_cls.classificators.clf.LDA
+
+ExtraTree:
+  pipeline:
+    scaler: null
+    dim_red: null
+  config:
+    _target_: ml_cls.classificators.clf.ExtraTree
+    n_jobs: -1
+    criterion: 'gini'
+    max_features: 0.6
+    min_samples_split: 10
+    max_depth: 4
+
+
 
 
 
