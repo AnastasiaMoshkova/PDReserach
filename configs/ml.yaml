@@ -8,7 +8,7 @@ folder: '2024-08-24_16-48-54' #'2024-08-18_17-52-58' #'2024-08-16_13-09-56' #'20
 file: 'feature_dataset.csv'
 fill_DI_healthy: True
 fill_nan: '' #'fill_nan_by_median_by_dataset' #'fill_nan_by_knn_unsupervised' #'fill_nan_by_knn_supervised' #'fill_nan_by_user_mean'
-sample_weight: True
+sample_weight: False
 
 
 task_name: ml

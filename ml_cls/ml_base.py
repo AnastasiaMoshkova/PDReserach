@@ -358,5 +358,3 @@ class MLBase():
         #feature selection
         #self.greedy_forward_result(df, features)
 
-
-
