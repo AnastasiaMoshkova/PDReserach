@@ -83,6 +83,7 @@ class PreProcessing:
                     if file.split('.')[1] == 'lmt':
                        subprocess.run(os.path.join(path_to_RecordPlaybackSample,'RecordPlaybackSample.exe') + ' ' + os.path.join(path, m, file) + " " + os.path.join(path, 'hand', file.split('.')[0] + '_' + m + '_' + folder + '.txt'))
 
+
     def LMJson(self, path_to_dir, folder, r):
         path = os.path.join(path_to_dir, folder, r, 'hand')
         for file in os.listdir(path):
@@ -107,6 +108,42 @@ class PreProcessing:
 
                         frame_number = int(a4[1])
 
+                    if line.find("Timestamp") >= 0:
+                        timestamp = int(line.split("Timestamp")[1].split()[0])
+                        frame_id = int(line.split("img_id")[1].split()[0])
+                        tracking_frame_id = int(line.split("tracking_img_id")[1].split()[0])
+                        framerate = float(line.split("fps")[1].split()[0])
+
+                        d.update({"timestamp":timestamp,
+                                  "frame_id":frame_id,
+                                  "tracking_frame_id":tracking_frame_id,
+                                  "framerate":framerate})
+
+                    if line.find("Confidence") >= 0:
+                        confidence = float(line.split("Confidence")[1].split()[0])
+                        id_frame = int(line.split("id_img")[1].split()[0])
+                        visible_time = int(line.split("visible_time")[1].split()[0])
+
+                        d.update({"confidence": confidence,
+                                  "id_frame": id_frame,
+                                  "visible_time": visible_time})
+
+                    if line.find("Pinch_distance") >= 0:
+                        pinch_distance = float(line.split("Pinch_distance")[1].split()[0])
+                        pinch_strength = float(line.split("pinch_strength")[1].split()[0])
+                        grab_angle = float(line.split("grab_angle")[1].split()[0])
+                        grab_strength = float(line.split("grab_strength")[1].split()[0])
+
+                        d.update({"pinch_distance": pinch_distance,
+                                  "pinch_strength": pinch_strength,
+                                  "grab_angle": grab_angle,
+                                  "grab_strength": grab_strength})
+
+                    if line.find("Palm_width") >= 0:
+                        palm_width = float(line.split("Palm_width")[1].split()[0])
+                        d.update({"palm_width": palm_width})
+
+
                     if line.find("Hand id") >= 0:
                         count = 0
                         result = re.search(r'\((.*?)\)', line).group(1)
@@ -129,7 +166,7 @@ class PreProcessing:
                             d2 = {'X': result_x, 'Y': result_y, 'Z': result_z, 'W': result_w, 'Wx': result_wx,
                                   'Wy': result_wy,
                                   'Wz': result_wz, 'Angle': resCentre}
-                            d = {'CENTRE': d2}
+                            d.update({'CENTRE': d2})
                             hand = "right hand"
                         if line.find("left hand") >= 0:
                             hand = "left hand"
@@ -139,7 +176,7 @@ class PreProcessing:
                             d2 = {'X': result_x, 'Y': result_y, 'Z': result_z, 'W': result_w, 'Wx': result_wx,
                                   'Wy': result_wy,
                                   'Wz': result_wz, 'Angle': resCentre}
-                            d = {'CENTRE': d2}
+                            d.update({'CENTRE': d2})
 
                     if line.find("bone with position") >= 0:
                         count = count + 1
@@ -175,7 +212,7 @@ class PreProcessing:
                 f.close()
 
     def face_processing(self, path_to_dir, folder, r):
-        #self.video_rename(path_to_dir, folder, r)
+        self.video_rename(path_to_dir, folder, r)
         self.video_to_FeatureExtraction(path_to_dir, folder, r, self.config['path_to_openface'])
         self.faceImage(path_to_dir, folder, r)
         self.video_to_FaceLandmarkImg(path_to_dir, folder, r, self.config['path_to_openface'])
