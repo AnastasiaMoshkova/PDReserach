@@ -9,6 +9,10 @@ from scipy import loadtxt, optimize
 from scipy.signal import argrelmax
 from scipy.signal import argrelmin
 
+'''
+реализация алгоритма автоматизированной расстановки точек экстремума для сигналов мимической активности
+'''
+
 class AutoFace():
     def __init__(self, **config):
         self.config = config

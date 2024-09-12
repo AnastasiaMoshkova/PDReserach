@@ -10,11 +10,15 @@ import shutil
 from pprint import pprint
 import matplotlib.pyplot as plt
 from matplotlib.pyplot import figure
+'''
+реализация класса расстановки точек экстремума с учетом выбранной модальности
+'''
 
 class AutoMarking():
     def __init__(self, config):
         self.config = config
 
+    #подготовка датафрема с путями до папок, где будет применен алгоритм авто разметки
     def data_parser_dataset(self, dataset):
         path_to_dir = self.config['automarking'][dataset]['path_to_directory']
         folders = os.listdir(self.config['automarking'][dataset]['path_to_directory'])
@@ -32,6 +36,7 @@ class AutoMarking():
         df['dataset'] = dataset
         return df.loc[df['number'].isin(self.config['automarking'][dataset]['number'])]
 
+    '''
     def data_parser(self, dataset):
         df_result = []
         path_to_dir = self.config['automarking'][dataset]['path_to_directory']
@@ -43,18 +48,22 @@ class AutoMarking():
         df['dataset'] = dataset
         df_result.append(df.loc[df['number'].isin(self.config['automarking'][dataset]['number'])])
         return pd.concat(df_result).reset_index(drop=True)
-
+    '''
     def data_processing(self):
         df_result = []
         for dataset in self.config['automarking']['dataset_type']:
+            df_result.append(self.data_parser_dataset(dataset))
+            '''
             if ((dataset == 'PD') | (dataset == 'Students')):
                 #df_result.append(self.data_parser(dataset))
                 df_result.append(self.data_parser_dataset(dataset))
             if (dataset == 'Healthy'):
                 df_result.append(self.data_parser_dataset(dataset))
+            '''
         df = pd.concat(df_result, axis = 0).reset_index(drop=True)
         return df
 
+    #запись точек в файл
     def write_point_hand(self, path, file, maxP, minP, maxA, minA, frac, order_min, order_max):
         datapoint = []
         for i in range(len(maxP)):
@@ -69,6 +78,7 @@ class AutoMarking():
             with open(os.path.join(path, file_point), 'w') as f:
                 json.dump(datapoint, f)
 
+    #запись точек в словарь
     def write_point_face(self, maxP, minP, maxA, minA):
         datapoint = []
         for i in range(len(maxP)):
@@ -78,6 +88,7 @@ class AutoMarking():
         datapoint = sorted(datapoint, key=lambda k: k['X'])
         return datapoint
 
+    #запись точек в .json и сохранение в соответсвующую папку
     def save_point_face(self, path, file, datapoint):
         if not os.path.isdir(path):
             os.mkdir(path)
@@ -95,7 +106,7 @@ class AutoMarking():
         plt.savefig(path_to_save)
         plt.clf()
 
-
+    #получение сигналов двигательной активности рук по номеру упражнения
     def signal_exersice_hand(self, data, hand, exersice):
         if exersice=='1':
             values, frame = self.signal_FT(data, hand)
@@ -105,6 +116,7 @@ class AutoMarking():
             values, frame = self.signal_PS(data, hand)
         return values, frame
 
+    #получение сигналов двигательной активности рук
     def signal_hand(self, file, exersice, hand_type):
         hand_dict = {'L':'left hand', 'R':'right hand'}
         hand = hand_dict[hand_type]
@@ -116,6 +128,7 @@ class AutoMarking():
             values, frame = self.signal_exersice_hand(data, hand, exersice)
         return values, frame
 
+    #получение сигналов мимической активности
     def signal_face(self, file, au):
         au_dict = {'AU1': 'AU01', 'AU2': 'AU02', 'AU3': 'AU03', 'AU4': 'AU04', 'AU5': 'AU05',
                    'AU6': 'AU06', 'AU7': 'AU07', 'AU8': 'AU08', 'AU9': 'AU09', 'AU12':'AU12', 'AU14':'AU14'}
@@ -127,6 +140,7 @@ class AutoMarking():
             values, frame = [], []
         return values, frame
 
+    #построение сигнала "постукивание пальцами"
     def signal_FT(self, data, hand):
         frame = []
         values = []
@@ -139,6 +153,8 @@ class AutoMarking():
                 values.append(distance)
                 frame.append(data[i]['frame'])
         return values, frame
+
+    #построение сигнала "открытие/закрытие ладони"
     def signal_OC(self, data, hand):
         frame = []
         values = []
@@ -151,6 +167,8 @@ class AutoMarking():
                 values.append(distance)
                 frame.append(data[i]['frame'])
         return values, frame
+
+    # построение сигнала "пронация/супинация ладони"
     def signal_PS(self, data, hand):
         frame = []
         values = []
@@ -163,12 +181,13 @@ class AutoMarking():
     def signal_AU(self, file, au):
         pass
 
-
+    #получение точек авто разметки по сигналам двигательной активности рук
     def auto_point_hand(self, values, frame):
         auto_alg_class = instantiate(self.config['automarking']['hand']['auto_alg_class'])
         maxP, minP, maxA, minA, frac, order_min, order_max = auto_alg_class.get_point(values, frame)
         return maxP, minP, maxA, minA, frac, order_min, order_max
 
+    #получение точек авто разметки по сигналам мимической активности
     def auto_point_face(self, values, frame):
         auto_alg_class = instantiate(self.config['automarking']['face']['auto_alg_class'])
         maxP, minP, maxA, minA, frac, order_min, order_max = auto_alg_class.get_point(values, frame)

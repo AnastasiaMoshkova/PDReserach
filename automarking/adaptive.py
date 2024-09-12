@@ -3,10 +3,14 @@ from scipy.signal import argrelmax
 from scipy.signal import argrelmin
 from pylab import*
 from scipy.fftpack import rfft, irfft, fftfreq
+'''
+реализация алгоритма "Adaptive" автоматизированной расстановки точек экстремума для сигналов двигательной активности рук
+'''
 
 class Adaptive():
     def __init__(self, **config):
         self.config = config
+
     def _calc_spectrIndex(self, z, i1, i2):
         s = []
         for i in range(len(z)):
@@ -70,6 +74,10 @@ class Adaptive():
                 x.append(n[i]['coord'])
                 xA.append(n[i]['A'])
         return x, y, xA, yA
+
+    '''
+    получения точек максиммумов и минимумов на основе побдора параметров 
+    '''
 
     def get_point(self, values, frame):
         values = np.array(values)
