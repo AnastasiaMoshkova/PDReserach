@@ -82,8 +82,8 @@
 
 ### Необходимые 'exe' для обработки
 
-- двигательная активность рук, тремор https://github.com/AnastasiaMoshkova/LeapMotionPlayback (чтение '.lmt')
-- мимика OpenFace
+- двигательная активность рук, тремор [RecordPlaybackSample](https://github.com/AnastasiaMoshkova/LeapMotionPlayback) (чтение '.lmt')
+- мимика OpenFace 
 - приложение для разметки данных - скоро на githab (пока что бинарники в архиве на гугл диске)
 
 ### Описание экспериментов
