@@ -214,7 +214,7 @@ class PreProcessing:
         self.video_to_FaceLandmarkImg(path_to_dir, folder, r, self.config['path_to_openface'])
 
     def hand_processing(self, path_to_dir, folder, r):
-        #self.send_lmt_to_LM(path_to_dir, folder, r, self.config['path_to_lmt_exe'])
+        self.send_lmt_to_LM(path_to_dir, folder, r, self.config['path_to_lmt_exe'])
         self.LMJson(path_to_dir, folder, r)
 
     def processing(self):
