@@ -108,40 +108,36 @@ class PreProcessing:
 
                         frame_number = int(a4[1])
 
-                    if line.find("Timestamp") >= 0:
-                        timestamp = int(line.split("Timestamp")[1].split()[0])
-                        frame_id = int(line.split("img_id")[1].split()[0])
-                        tracking_frame_id = int(line.split("tracking_img_id")[1].split()[0])
-                        framerate = float(line.split("fps")[1].split()[0])
-
-                        d.update({"timestamp":timestamp,
-                                  "frame_id":frame_id,
-                                  "tracking_frame_id":tracking_frame_id,
-                                  "framerate":framerate})
-
                     if line.find("Confidence") >= 0:
                         confidence = float(line.split("Confidence")[1].split()[0])
                         id_frame = int(line.split("id_img")[1].split()[0])
                         visible_time = int(line.split("visible_time")[1].split()[0])
-
-                        d.update({"confidence": confidence,
-                                  "id_frame": id_frame,
-                                  "visible_time": visible_time})
-
-                    if line.find("Pinch_distance") >= 0:
-                        pinch_distance = float(line.split("Pinch_distance")[1].split()[0])
+                        pinch_distance = float(line.split("pinch_distance")[1].split()[0])
                         pinch_strength = float(line.split("pinch_strength")[1].split()[0])
                         grab_angle = float(line.split("grab_angle")[1].split()[0])
                         grab_strength = float(line.split("grab_strength")[1].split()[0])
+                        palm_width = float(line.split("palm_width")[1].split()[0])
+                        timestamp = int(line.split("timestamp")[1].split()[0])
+                        frame_id = int(line.split("img_id")[1].split()[0])
+                        tracking_frame_id = int(line.split("tracking_img_id")[1].split()[0])
+                        framerate = float(line.split("fps")[1].split()[0])
+                        version = line.split("version")[1].split()[0]
 
-                        d.update({"pinch_distance": pinch_distance,
+                        d.update({'info':{"confidence": confidence,
+                                  "id_frame": id_frame,
+                                  "visible_time": visible_time,
+                                  "pinch_distance": pinch_distance,
                                   "pinch_strength": pinch_strength,
                                   "grab_angle": grab_angle,
-                                  "grab_strength": grab_strength})
+                                  "grab_strength": grab_strength,
+                                  "palm_width": palm_width,
+                                  "timestamp": timestamp,
+                                  "frame_id": frame_id,
+                                  "tracking_frame_id": tracking_frame_id,
+                                  "framerate": framerate,
+                                  "version":version}
+                                  })
 
-                    if line.find("Palm_width") >= 0:
-                        palm_width = float(line.split("Palm_width")[1].split()[0])
-                        d.update({"palm_width": palm_width})
 
 
                     if line.find("Hand id") >= 0:
@@ -218,7 +214,7 @@ class PreProcessing:
         self.video_to_FaceLandmarkImg(path_to_dir, folder, r, self.config['path_to_openface'])
 
     def hand_processing(self, path_to_dir, folder, r):
-        self.send_lmt_to_LM(path_to_dir, folder, r, self.config['path_to_lmt_exe'])
+        #self.send_lmt_to_LM(path_to_dir, folder, r, self.config['path_to_lmt_exe'])
         self.LMJson(path_to_dir, folder, r)
 
     def processing(self):
