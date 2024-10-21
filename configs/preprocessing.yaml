@@ -3,16 +3,19 @@ class_name:
 
 task_name: preprocessing
 
-process_face: True
-process_hand: False
+process_face: False
+process_hand: True
 
-path_to_lmt_exe: 'D:\\Programs\\leapmotion\\'
+hand_folder: 'handv22'
+face_folder: 'face'
+
+path_to_lmt_exe: 'D:\\Programs\\leapmotionv22\\' #'D:\\Programs\\leapmotion\\'
 path_to_openface: 'D:\\Programs\\openface\\Release\\' #'E:\\EXeFiles\\OpenFace-master\\x64\\Release\\'
 
 PD:
   path_to_directory: 'D://PD'
   id_name: 'Patient'
-  numbers: []
+  numbers: [90]
 
 HEALTHY:
   path_to_directory: 'D://HEALTHY'
@@ -22,7 +25,7 @@ HEALTHY:
 STUDENT:
   path_to_directory: 'D://STUDENTS'
   id_name: 'student'
-  numbers: [16]
+  numbers: []
 
 every_frames: 5
 video_sequence: ['p1', 'p2', 'p3', 'p5', 'p11', 'p12_1', 'p12_2', 'p12_3', 'p12_4', 'p12_5', 'p12_6', 'p13_1', 'p13_2', 'p13_3', 'p13_4', 'p13_5', 'p13_6']

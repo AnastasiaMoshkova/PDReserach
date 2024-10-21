@@ -16,15 +16,15 @@ class PreProcessing:
 
     def video_rename(self, path_to_dir, folder, r):
         listAU = []
-        for file in os.listdir(os.path.join(path_to_dir, folder, r, 'face')):
+        for file in os.listdir(os.path.join(path_to_dir, folder, r, self.config['face_folder'])):
             if ('mp4' in file):
                 listAU.append(file)
         for i in range(len(listAU)):
-            os.rename(os.path.join(path_to_dir, folder, r, 'face', listAU[i]),
-                      os.path.join(path_to_dir, folder, r, 'face', self.config['video_sequence'][i] + '_' + folder + '.mp4'))
+            os.rename(os.path.join(path_to_dir, folder, r, self.config['face_folder'], listAU[i]),
+                      os.path.join(path_to_dir, folder, r, self.config['face_folder'], self.config['video_sequence'][i] + '_' + folder + '.mp4'))
 
     def video_to_FeatureExtraction(self, path_to_dir, folder, r, path_to_openface):
-        path = os.path.join(path_to_dir, folder, r, 'face')
+        path = os.path.join(path_to_dir, folder, r, self.config['face_folder'])
         listAU = []
         for file in os.listdir(path):
             if 'mp4' in file:
@@ -51,7 +51,7 @@ class PreProcessing:
         vidcap.release()
 
     def faceImage(self, path_to_dir, folder, r):
-        path = os.path.join(path_to_dir, folder, r, 'face')
+        path = os.path.join(path_to_dir, folder, r, self.config['face_folder'])
         for file in os.listdir(path):
             if 'mp4' in file:
                 if file.split('_')[0] in ['p12', 'p13']:
@@ -65,15 +65,15 @@ class PreProcessing:
                     self.video_to_frames(os.path.join(path, file), folder_frame, 60)
 
     def video_to_FaceLandmarkImg(self, path_to_dir, folder, r, path_to_openface):
-        path = os.path.join(path_to_dir, folder, r, 'face')
+        path = os.path.join(path_to_dir, folder, r, self.config['face_folder'])
         task = ['p1', 'p12_1', 'p12_2', 'p12_3', 'p12_4', 'p12_5', 'p12_6', 'p13_1', 'p13_2', 'p13_3', 'p13_4', 'p13_5', 'p13_6']
         for j in range(len(task)):
             subprocess.run(os.path.join(path_to_openface, 'FaceLandmarkImg.exe') + ' -fdir ' + os.path.join(path, task[j]) + ' -out_dir ' + os.path.join(path, task[j]) + ' -aus')
 
     def send_lmt_to_LM(self, path_to_dir, folder, r, path_to_RecordPlaybackSample):
         path = os.path.join(path_to_dir, folder, r)
-        if not os.path.isdir(os.path.join(path, 'hand')):
-            os.mkdir(os.path.join(path, 'hand'))
+        if not os.path.isdir(os.path.join(path, self.config['hand_folder'])):
+            os.mkdir(os.path.join(path, self.config['hand_folder']))
         folders = os.listdir(path)
         ms = [m for m in folders if re.findall(r'm\d+', m)]
         for m in ms:
@@ -81,11 +81,11 @@ class PreProcessing:
                 files = os.listdir(os.path.join(path, m))
                 for file in files:
                     if file.split('.')[1] == 'lmt':
-                       subprocess.run(os.path.join(path_to_RecordPlaybackSample,'RecordPlaybackSample.exe') + ' ' + os.path.join(path, m, file) + " " + os.path.join(path, 'hand', file.split('.')[0] + '_' + m + '_' + folder + '.txt'))
+                       subprocess.run(os.path.join(path_to_RecordPlaybackSample,'RecordPlaybackSample.exe') + ' ' + os.path.join(path, m, file) + " " + os.path.join(path, self.config['hand_folder'], file.split('.')[0] + '_' + m + '_' + folder + '.txt'))
 
 
     def LMJson(self, path_to_dir, folder, r):
-        path = os.path.join(path_to_dir, folder, r, 'hand')
+        path = os.path.join(path_to_dir, folder, r, self.config['hand_folder'])
         for file in os.listdir(path):
             if "txt" in file:
                 print('file', file)
@@ -137,8 +137,6 @@ class PreProcessing:
                                   "framerate": framerate,
                                   "version":version}
                                   })
-
-
 
                     if line.find("Hand id") >= 0:
                         count = 0
