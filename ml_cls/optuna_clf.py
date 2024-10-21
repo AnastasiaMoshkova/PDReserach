@@ -9,6 +9,8 @@ from ml_cls.ml_base import MLBase
 from hydra.utils import instantiate
 from sklearn.metrics import balanced_accuracy_score
 from sklearn.metrics import r2_score
+import sklearn
+from sklearn.utils.class_weight import compute_sample_weight,compute_class_weight
 
 
 
@@ -49,6 +51,8 @@ class OptunaClf(MLBase):
         else:
             dimen_red_algorithm='passthrough'
 
+        sample_weight = trial.suggest_categorical("sample_weight", self.config['ml']['sample_weight'])
+
         params = {'_target_':self.config['ml'][clf]['_target_']}
         if 'suggest_int' in self.config['ml'][clf].keys():
             for key in self.config['ml'][clf]['suggest_int'].keys():
@@ -64,13 +68,22 @@ class OptunaClf(MLBase):
         estimator = instantiate(params)
 
         # -- Make a pipeline
-        pipeline = make_pipeline(scaler, dimen_red_algorithm, estimator)
+        #pipeline = make_pipeline(scaler, dimen_red_algorithm, estimator)
+        pipeline = sklearn.pipeline.Pipeline(
+            [('scaler', scaler),
+            ('dim_red', dimen_red_algorithm),
+            ('estimator',estimator)]) #TODO
+        #pipeline.set_params({'estimator__sample_weight' : self.y})
 
         #TODO from class mlbase
         #print(cv.get_n_splits(self.X, self.y, groups = self.group,))
         if self.config['ml']['cv']['type']=='cv_loo':
             cv = LeaveOneGroupOut()
-            predict = cross_val_predict(pipeline, self.X, self.y, groups = self.group, cv = cv) #, cross_val_score scoring=self.config['ml']['scoring']
+            if sample_weight:
+                weights = compute_sample_weight(class_weight="balanced", y=self.y)
+                predict = cross_val_predict(pipeline, self.X, self.y, groups = self.group, cv = cv, params = {'estimator__sample_weight' : weights}) #, cross_val_score scoring=self.config['ml']['scoring']
+            else:
+                predict = cross_val_predict(pipeline, self.X, self.y, groups=self.group, cv=cv)
             if self.config['ml']['scoring']=='balanced_accuracy':
                 metric = balanced_accuracy_score(self.y, predict)
             if self.config['ml']['scoring']=='r2':

@@ -4,11 +4,17 @@ class_name:
 #features: ['DecA_PS', 'AvgVopen_AU12_p5', 'Length_AU4_p11', 'DI_Surprise', 'AvgVopen_PS'] #['Length_AU4_p11', 'AvgVopen_AU4_p11', 'VarA_AU4_p11',  'AvgVopen_AU12_p5', 'Length_AU12_p5',  'VarA_AU12_p5', 'DecFV_AU12_p5',  'DI_Surprise', 'DI_Happiness','VarFrq_FT', 'VarVopen_FT', 'VarA_FT', 'NumA_FT', 'AvgVopen_OC', 'VarFrq_OC', 'VarVopen_PS', 'VarA_PS']
 #features: ['DI_Disgust','DI_Sadness','DI_Surprise','DecA_PS','VarVopen_AU4_p11','VarA_AU4_p11','AvgVopen_PS','Length_AU4_p11','Length_AU12_p5','AvgVopen_AU12_p5','AvgVopen_OC','NumA_OC','AvgVopen_FT','VarVopen_PS']
 #features: ['VarFrq_PS','AvgFrqF_AU4_p11','DA_Surprise','AvgVopen_AU4_p11','DecFV_AU4_p11','DI_Happiness','VarVopen_PS','DI_Disgust','AvgVopen_PS','VarA_FT','AvgA_OC','AvgVopen_FT','NumA_PS','VarVclose_FT','AvgFrqF_AU12_p5','NumA_OC','DecA_FT','AvgVopen_OC','AvgVclose_AU12_p5','AvgFrq_FT','DA_Anger','Length_AU12_p5']
-features: ['AvgFrqF_AU12_p5','AvgVopen_AU12_p5','Length_AU12_p5','AvgVclose_AU4_p11','Length_AU4_p11','DA_Surprise','DA_Disgust','DI_Disgust','NumA_FT','AvgVopen_FT','VarVopen_FT','AvgVopenDiff_FT','DecVDiff_FT','AvgVopen_OC','VarA_OC','VarVopen_OC','AvgADiff_OC','AvgVopen_PS','AvgA_PS','VarVopen_PS','AvgVopenDiff_PS']
+#features: ['AvgFrqF_AU12_p5','AvgVopen_AU12_p5','Length_AU12_p5','AvgVclose_AU4_p11','Length_AU4_p11','DA_Surprise','DA_Disgust','DI_Disgust','NumA_FT','AvgVopen_FT','VarVopen_FT','AvgVopenDiff_FT','DecVDiff_FT','AvgVopen_OC','VarA_OC','VarVopen_OC','AvgADiff_OC','AvgVopen_PS','AvgA_PS','VarVopen_PS','AvgVopenDiff_PS']
+#features: ['AvgFrqF_AU4_p11','AvgVopen_AU4_p11','VarA_AU4_p11','AvgVclose_AU12_p5','AvgFrqF_AU12_p5','DecFA_AU12_p5','Length_AU12_p5','DI_Disgust','VarA_FT','VarVopen_FT','AvgVopen_FT','AvgADiff_FT','DecA_FT','AvgFrq_FT','AvgVcloseDiff_OC','NumADiff_OC','AvgVopen_OC','VarVopen_PS','VarA_PS','AvgVopen_PS','AvgVopenDiff_PS','AvgA_PS',]
+#features: ['AvgFrqF_AU4_p11','AvgVopen_AU4_p11','VarA_AU4_p11','AvgVclose_AU12_p5','AvgFrqF_AU12_p5','DecFA_AU12_p5','Length_AU12_p5','DI_Disgust','VarA_FT','VarVopen_FT','AvgVopen_FT','DecA_FT','AvgFrq_FT','NumADiff_OC','AvgVopen_OC','VarVopen_PS','VarA_PS','AvgVopen_PS','AvgA_PS',]
+#features: ['VarVopen_FT', 'VarA_AU4_p11', 'DI_Disgust', 'AvgADiff_FT', 'Length_AU12_p5', 'AvgVopen_OC', 'AvgVopenDiff_PS', 'AvgFrqF_AU12_p5', 'AvgVopen_PS']
+features: ['VarFrq_PS','AvgFrqF_AU4_p11','DA_Surprise','AvgVopen_AU4_p11','DecFV_AU4_p11','DI_Happiness','VarVopen_PS','DI_Disgust','AvgVopen_PS','VarA_FT','AvgA_OC','AvgVopen_FT','NumA_PS','VarVclose_FT','AvgFrqF_AU12_p5','NumA_OC','DecA_FT','AvgVopen_OC','AvgVclose_AU12_p5','AvgFrq_FT','DA_Anger','Length_AU12_p5']
+#features: ['AvgFrqF_AU4_p11','AvgVopen_AU4_p11','VarA_AU4_p11','AvgVclose_AU12_p5','AvgFrqF_AU12_p5','DecFA_AU12_p5','Length_AU12_p5','DI_Disgust','VarA_FT','VarVopen_FT','AvgVopen_FT','NumA_FT','AvgADiff_FT','AvgVopen_OC','NumADiff_OC','VarVopen_PS','VarA_PS','AvgVopen_PS','AvgA_PS','NumADiff_PS', 'DecADiff_PS']
 confusion_matrix: False
 datasets: ['PD', 'HEALTHY']
 scalers: [null, 'minmax', 'standard', 'robust']
 dim_red: ["PCA", null]
+sample_weight: [True] #, False]
 classifiers: ['XGBoost'] #['LR','NB', 'DT', 'SVM', 'KNN', 'LDA', 'RF', 'XGBoost','LGBM']
 scoring: 'balanced_accuracy'
 trials: 100
