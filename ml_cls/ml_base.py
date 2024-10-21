@@ -96,8 +96,10 @@ class MLBase():
             ('model',model)]) #TODO
         #class_weight = compute_class_weight(class_weight="balanced", classes=np.unique(train['class']), y=train['class'])
         if self.config['sample_weight']:
-            cl.set_params(model__sample_weight=train['sample_weight'].values)
-        clf = cl.fit(train[features], train[self.config['ml']['target']])
+            clf = cl.fit(train[features], train[self.config['ml']['target']],model__sample_weight=train['sample_weight'].values)
+            #cl.set_params(model__sample_weight=train['sample_weight'].values)
+        else:
+            clf = cl.fit(train[features], train[self.config['ml']['target']])
         test['pred'] = clf.predict(test[features])
         #print(clf.score(test[features],test[self.config['ml']['target']]))
         return test
