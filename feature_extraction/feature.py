@@ -4,13 +4,14 @@ import os
 import json
 import math
 class Feature():
-    def __init__(self, maxPointX, maxPointY, minPointX, minPointY, norm_coef, datapoint):
+    def __init__(self, maxPointX, maxPointY, minPointX, minPointY, norm_coef, datapoint, config):
         self.maxPointX = maxPointX
         self.maxPointY = maxPointY
         self.minPointX = minPointX
         self.minPointY = minPointY
         self.norm_coef = norm_coef
         self.datapoint = datapoint
+        self.config = config
 
     def loadfileInterval_hand(self,datapoint, start, stop):
         counter = 0
@@ -41,8 +42,8 @@ class NumAF(Feature):
 class NumA(Feature):
     def calc(self):
         dp = sorted(self.datapoint, key=lambda k: k['X'])[-1]['X']
-        if dp < 1700:
-            return round(len(self.maxPointX) * 1700/dp)
+        if dp < self.config['stop']:
+            return round(len(self.maxPointX) * self.config['stop']/dp)
         else:
             return len(self.maxPointY)
 
@@ -52,7 +53,7 @@ class AvgFrq(Feature):
             result = []
             for i in range(len(self.maxPointX) - 1):
                 result.append(1 / (self.maxPointX[i + 1] - self.maxPointX[i]))
-            return sum(result) / len(result) *100
+            return sum(result) / len(result) * self.config['k']
         else:
             return 0
 
@@ -62,7 +63,7 @@ class VarFrq(Feature):
             result = []
             for i in range(len(self.maxPointX) - 1):
                 result.append(1 / (self.maxPointX[i + 1] - self.maxPointX[i]))
-            return (np.std(result) / np.mean(result)) * 100
+            return (np.std(result) / np.mean(result)) * self.config['k']
         else:
             return 0
 
@@ -107,8 +108,8 @@ class VarA(Feature):
         for i in range(len(self.maxPointY)):
             result1.append(self.maxPointY[i] - self.minPointY[i])
             result2.append(self.maxPointY[i]-self.minPointY[i+1])
-        std1 = (np.std(result1) / np.mean(result1)) * 100
-        std2 = (np.std(result2) / np.mean(result2)) * 100
+        std1 = (np.std(result1) / np.mean(result1)) * self.config['k']
+        std2 = (np.std(result2) / np.mean(result2)) * self.config['k']
         return np.mean([std1, std2])
 
 class VarVopen(Feature):
@@ -117,7 +118,7 @@ class VarVopen(Feature):
         for i in range(len(self.maxPointX)):
             result.append((self.maxPointY[i] - self.minPointY[i]) / (self.maxPointX[i] - self.minPointX[i]))
         if len(result) != 0:
-            return (np.std(result) / np.mean(result)) * 100
+            return (np.std(result) / np.mean(result)) * self.config['k']
         else:
             return 0
 
@@ -128,21 +129,21 @@ class VarVclose(Feature):
         for i in range(len(self.maxPointX) - 1):
             result.append((self.maxPointY[i] - self.minPointY[i + 1]) / (self.minPointX[i + 1] - self.maxPointX[i]))
         if len(result) != 0:
-            return (np.std(result) / np.mean(result)) * 100
+            return (np.std(result) / np.mean(result)) * self.config['k']
         else:
             return 0
 
 class DecA(Feature):
     def calc(self):
-        start1 = 100
+        start1 = self.config['start']
         stop1 = round((max(self.minPointX) - start1) / 4 + start1)
         maxPointX, maxPointY, minPointX, minPointY = self.loadfileInterval_hand(self.datapoint,start1, stop1)
-        amplitude1 = AvgA(maxPointX, maxPointY, minPointX, minPointY, self.norm_coef, self.datapoint).calc()
+        amplitude1 = AvgA(maxPointX, maxPointY, minPointX, minPointY, self.norm_coef, self.datapoint, self.config).calc()
 
         start4 = round(3 * (max(self.minPointX) - start1) / 4 + start1)
         stop4 = round(max(self.minPointX)+1)
         maxPointX, maxPointY, minPointX, minPointY = self.loadfileInterval_hand(self.datapoint, start4, stop4)
-        amplitude4 = AvgA(maxPointX, maxPointY, minPointX, minPointY, self.norm_coef, self.datapoint).calc()
+        amplitude4 = AvgA(maxPointX, maxPointY, minPointX, minPointY, self.norm_coef, self.datapoint, self.config).calc()
         if amplitude1==0:
             return 0
         else:
@@ -150,16 +151,16 @@ class DecA(Feature):
 
 class DecV(Feature):
     def calc(self):
-        start1 = 100
+        start1 = self.config['start']
         stop1 = (max(self.minPointX)-start1)/4+start1
         maxPointX, maxPointY, minPointX, minPointY = self.loadfileInterval_hand(self.datapoint, start1, stop1)
-        speed1 = np.mean([AvgVopen(maxPointX, maxPointY, minPointX, minPointY, self.norm_coef, self.datapoint).calc(),
-                       AvgVclose(maxPointX, maxPointY, minPointX, minPointY, self.norm_coef, self.datapoint).calc(),])
+        speed1 = np.mean([AvgVopen(maxPointX, maxPointY, minPointX, minPointY, self.norm_coef, self.datapoint, self.config).calc(),
+                       AvgVclose(maxPointX, maxPointY, minPointX, minPointY, self.norm_coef, self.datapoint, self.config).calc(),])
         start4 = 3*(max(self.minPointX)-start1)/4+start1
         stop4 = max(self.minPointX)
         maxPointX, maxPointY, minPointX, minPointY = self.loadfileInterval_hand(self.datapoint, start4, stop4)
-        speed4 = np.mean([AvgVopen(maxPointX, maxPointY, minPointX, minPointY, self.norm_coef, self.datapoint).calc(),
-                          AvgVclose(maxPointX, maxPointY, minPointX, minPointY, self.norm_coef, self.datapoint).calc(), ])
+        speed4 = np.mean([AvgVopen(maxPointX, maxPointY, minPointX, minPointY, self.norm_coef, self.datapoint, self.config).calc(),
+                          AvgVclose(maxPointX, maxPointY, minPointX, minPointY, self.norm_coef, self.datapoint, self.config).calc(), ])
         if speed1==0:
             return 0
         else:
@@ -235,7 +236,7 @@ class AvgFrqF(Feature):
         if ((len(self.maxPointX) != 0) | ((len(self.maxPointX) != 1))):
             result = []
             for i in range(len(self.maxPointX) - 1):
-                result.append(100 / (self.maxPointX[i + 1] - self.maxPointX[i]))
+                result.append(self.config['k'] / (self.maxPointX[i + 1] - self.maxPointX[i]))
             return sum(result) / len(result)
         else:
             return 0
@@ -245,8 +246,8 @@ class VarFrqF(Feature):
         if ((len(self.maxPointX) != 0) | ((len(self.maxPointX) != 1))):
             result = []
             for i in range(len(self.maxPointX) - 1):
-                result.append(100 / (self.maxPointX[i + 1] - self.maxPointX[i]))
-            return (np.std(result) / np.mean(result)) * 100
+                result.append(self.config['k'] / (self.maxPointX[i + 1] - self.maxPointX[i]))
+            return (np.std(result) / np.mean(result)) * self.config['k']
         else:
             return 0
 

@@ -1,38 +1,67 @@
 NumA:
   _target_: feature_extraction.feature.NumA
+  config:
+    stop: 17 #1700
 AvgFrq:
   _target_: feature_extraction.feature.AvgFrq
+  config:
+    k: 100
 VarFrq:
   _target_: feature_extraction.feature.VarFrq
+  config:
+    k: 100
 AvgVopen:
   _target_: feature_extraction.feature.AvgVopen
+  config:
 AvgVclose:
   _target_: feature_extraction.feature.AvgVclose
+  config:
 AvgA:
   _target_: feature_extraction.feature.AvgA
+  config:
 VarA:
   _target_: feature_extraction.feature.VarA
+  config:
+    k: 100
 VarVopen:
   _target_: feature_extraction.feature.VarVopen
+  config:
+    k: 100
 VarVclose:
   _target_: feature_extraction.feature.VarVclose
+  config:
+    k: 100
 DecA:
   _target_: feature_extraction.feature.DecA
+  config:
+    start: 1 #100
 DecV:
   _target_: feature_extraction.feature.DecV
+  config:
+    start: 1 #100
 DecFA:
   _target_: feature_extraction.feature.DecFA
+  config:
 DecFV:
   _target_: feature_extraction.feature.DecFV
+  config:
 Length:
   _target_: feature_extraction.feature.Length
+  config:
 AvgFrqF:
   _target_: feature_extraction.feature.AvgFrqF
+  config:
+    k: 100
 VarFrqF:
   _target_: feature_extraction.feature.VarFrqF
+  config:
+    k: 100
 DecValueA:
   _target_: feature_extraction.feature.DecValueA
+  config:
 DecValueV:
   _target_: feature_extraction.feature.DecValueV
+  config:
 NumAF:
   _target_: feature_extraction.feature.NumAF
+  config:
