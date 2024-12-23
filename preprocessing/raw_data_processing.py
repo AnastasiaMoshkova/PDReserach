@@ -72,8 +72,8 @@ class PreProcessing:
 
     def send_lmt_to_LM(self, path_to_dir, folder, r, path_to_RecordPlaybackSample):
         path = os.path.join(path_to_dir, folder, r)
-        if not os.path.isdir(os.path.join(path, self.config['hand_folder'])):
-            os.mkdir(os.path.join(path, self.config['hand_folder']))
+        if not os.path.isdir(os.path.join(path, self.config['hand_folder_LM'])):
+            os.mkdir(os.path.join(path, self.config['hand_folder_LM']))
         folders = os.listdir(path)
         ms = [m for m in folders if re.findall(r'm\d+', m)]
         for m in ms:
@@ -81,11 +81,11 @@ class PreProcessing:
                 files = os.listdir(os.path.join(path, m))
                 for file in files:
                     if file.split('.')[1] == 'lmt':
-                       subprocess.run(os.path.join(path_to_RecordPlaybackSample,'RecordPlaybackSample.exe') + ' ' + os.path.join(path, m, file) + " " + os.path.join(path, self.config['hand_folder'], file.split('.')[0] + '_' + m + '_' + folder + '.txt'))
+                       subprocess.run(os.path.join(path_to_RecordPlaybackSample,'RecordPlaybackSample.exe') + ' ' + os.path.join(path, m, file) + " " + os.path.join(path, self.config['hand_folder_LM'], file.split('.')[0] + '_' + m + '_' + folder + '.txt'))
 
 
     def LMJson(self, path_to_dir, folder, r):
-        path = os.path.join(path_to_dir, folder, r, self.config['hand_folder'])
+        path = os.path.join(path_to_dir, folder, r, self.config['hand_folder_LM'])
         for file in os.listdir(path):
             if "txt" in file:
                 print('file', file)
@@ -211,9 +211,17 @@ class PreProcessing:
         self.faceImage(path_to_dir, folder, r)
         self.video_to_FaceLandmarkImg(path_to_dir, folder, r, self.config['path_to_openface'])
 
-    def hand_processing(self, path_to_dir, folder, r):
+    def hand_processing_LM(self, path_to_dir, folder, r):
         self.send_lmt_to_LM(path_to_dir, folder, r, self.config['path_to_lmt_exe'])
         self.LMJson(path_to_dir, folder, r)
+
+    def hand_processing_MP(self, path_to_dir, folder, r):
+        '''
+        TODO
+        написать функцию препроцессинга данных через MediaPipe (по примеру hand_processing_LM),
+        где запись выодных данных производится в файл json с аналогичной структурой
+        '''
+        pass
 
     def processing(self):
         for dataset in ['PD', 'HEALTHY', 'STUDENT']:
@@ -223,5 +231,7 @@ class PreProcessing:
                 for r in os.listdir(os.path.join(path_to_dir, folder)):
                     if self.config['process_face']:
                         self.face_processing(path_to_dir, folder, r)
-                    if self.config['process_hand']:
-                        self.hand_processing(path_to_dir, folder, r)
+                    if self.config['process_hand_LM']:
+                        self.hand_processing_LM(path_to_dir, folder, r)
+                    if self.config['process_hand_MP']:
+                        self.hand_processing_MP(path_to_dir, folder, r)

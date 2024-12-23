@@ -4,9 +4,11 @@ class_name:
 task_name: preprocessing
 
 process_face: False
-process_hand: True
+process_hand_LM: True
+process_hand_MP: True
 
-hand_folder: 'handv22'
+hand_folder_LM: 'handv22'
+hand_folder_PM: 'handPM'
 face_folder: 'face'
 
 path_to_lmt_exe: 'D:\\Programs\\leapmotionv22\\' #'D:\\Programs\\leapmotion\\'
@@ -15,7 +17,7 @@ path_to_openface: 'D:\\Programs\\openface\\Release\\' #'E:\\EXeFiles\\OpenFace-m
 PD:
   path_to_directory: 'D://PD'
   id_name: 'Patient'
-  numbers: [90]
+  numbers: [100,102]
 
 HEALTHY:
   path_to_directory: 'D://HEALTHY'

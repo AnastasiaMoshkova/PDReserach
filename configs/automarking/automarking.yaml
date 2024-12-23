@@ -33,8 +33,10 @@ Students:
   folder_name: 'student'
 
 hand:
+  input_folder: 'hand'
   output_folder: 'auto_algorithm_hand'
   threshold: 20 #TODO
+  timestamp: 'frame'
   threshold_data_length: 800
   exercise: ['FT', 'OC', 'PS']
   auto_alg_class:
