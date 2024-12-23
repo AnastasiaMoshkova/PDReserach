@@ -201,7 +201,6 @@ class TremorProcessing:
         ampl: значение амлитуды максимальной гармоники в промежутки от 3 до 6 Гц
 
     '''
-
     def _calculate_features(self, X, Y, Z, frame):
         X = np.array(X) - min(X)
         Y = np.array(Y) - min(Y)
@@ -243,3 +242,13 @@ class TremorProcessing:
     def plot_tremor(self, path, file, hand, key_point, output_path):
         X, Y, Z, frame = self._tremor_signal(os.path.join(path, file), hand, key_point)
         self._plot_tremor_signals_and_spectrum(frame, X, Y, Z, file.split('.')[0], output_path)
+
+
+    def _quality_check(self):
+        '''
+        TODO
+        написать функцию которая возращает значения (например 0 и 1),
+        обозначающее пригодность сигнала для дальнейшей обработки
+        Функция _quality_check может быть вызвана в _calculate_features, где например сначала производится проверка качества сигнала,
+        а затем рассчитываются признаки или возвращается NAN (или -1)
+        '''
