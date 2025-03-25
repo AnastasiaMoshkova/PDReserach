@@ -23,12 +23,12 @@ class CheckData(HandData):
         return file_size, file_flag
 
     def _check_json_len(self, path, m, file):
-        files_json = os.listdir(os.path.join(path, 'hand'))
+        files_json = os.listdir(os.path.join(path, self.config['hand']['folder']))
         file_json = [file_j for file_j in files_json if file.split('.lmt')[0] + '_' + m in file_j]
         if len(file_json) != 0:
             file_json_name = file_json[0]
-            file_size_json = os.stat(os.path.join(path, 'hand', file_json_name)).st_size
-            data = json.load(open(os.path.join(path, 'hand', file_json_name)))
+            file_size_json = os.stat(os.path.join(path, self.config['hand']['folder'], file_json_name)).st_size
+            data = json.load(open(os.path.join(path, self.config['hand']['folder'], file_json_name)))
             json_length = len(data)
             hand_L_in_json = 0
             hand_R_in_json = 0
@@ -69,14 +69,14 @@ class CheckData(HandData):
         print(path_to_dir,file_signal)
         exersice = file_signal.split('_')[0].split('leapRecording')[1]
         hand_type = file_signal.split('_')[1]
-        values, frame = self.signal_hand(os.path.join(path_to_dir, 'hand', file_signal), exersice, hand_type)
+        values, frame = self.signal_hand(os.path.join(path_to_dir, self.config['hand']['folder'], file_signal), exersice, hand_type)
         if os.path.isfile(os.path.join(path_to_dir, self.config['hand']['path_to_mannual_point'], str(file_mannual_point))):
             point_mannual = json.load(open(os.path.join(path_to_dir, self.config['hand']['path_to_mannual_point'], str(file_mannual_point))))
         if os.path.isfile(os.path.join(path_to_dir, self.config['hand']['path_to_auto_point'], str(file_auto_point))):
             point_auto = json.load(open(os.path.join(path_to_dir, self.config['hand']['path_to_auto_point'], str(file_auto_point))))
         figure(figsize=(20, 6), dpi=80)
         fig, axs = plt.subplots(2, figsize=(20, 12))
-        axs[0].plot(values)
+        axs[0].plot(frame, values)
         axs[0].set_title('Mannual ' + str(file_mannual_point), fontsize=15)
         axs[0].set_xlabel('Time (sec)', fontsize=15)
         axs[0].set_ylabel('Distance (mm)', fontsize=15)
@@ -87,7 +87,7 @@ class CheckData(HandData):
                 axs[0].plot(point_mannual[i]['X'], point_mannual[i]['Y'], 'o', color='red')
         axs[0].tick_params(axis='x', labelsize=15)
         axs[0].tick_params(axis='y', labelsize=15)
-        axs[1].plot(values)
+        axs[1].plot(frame, values)
         axs[1].set_title('Auto ' + str(file_auto_point), fontsize=15)
         axs[1].set_xlabel('Time (sec)', fontsize=15)
         axs[1].set_ylabel('Distance (mm)', fontsize=15)
