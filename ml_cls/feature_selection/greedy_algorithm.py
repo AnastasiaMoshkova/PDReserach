@@ -34,12 +34,15 @@ class GreedyAlgorithm(MLBase):
             features.remove(step_result['feature_add'])
             prev_features = step_result['feature_vector']
         #print(pd.concat(res, axis = 1).transpose())
+        print(pd.concat(res, axis = 1).transpose().sort_values(metric_optima, ascending=False))
         result = pd.concat(res, axis = 1).transpose().sort_values(metric_optima, ascending=False).iloc[0]
         return result
 
     def greedy_forward_result(self, df, features, cv_type):
         results = []
         metric_optima = self.config['ml']['metric'] #['feature_selection']['greedy']
+        if ((metric_optima=='balanced_accuracy')&(self.config['ml']['track']=='cv_loo')):
+            metric_optima = 'balanced_accuracy_loo'
         for clf in self.config['ml']['classifiers']:
             result = self.greedy_clf_forward(df, features, clf, metric_optima, cv_type)
             results.append(result)
@@ -105,7 +108,8 @@ class GreedyAlgorithm(MLBase):
         return list(df_new.columns)
 
 
-    def select_k_best(self, df, features, k, method):
+    def select_k_best(self, df_input, features, k, method):
+        df = df_input.copy()
         df[features] = df[features].replace({0: np.NaN, -1: np.NaN})
         df = self.data_processing_cv(df).dropna(subset = features)
         if method == "chi2":
