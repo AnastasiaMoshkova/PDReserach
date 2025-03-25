@@ -6,14 +6,14 @@ import math
 class Feature():
     def __init__(self, maxPointX, maxPointY, minPointX, minPointY, norm_coef, datapoint, config):
         self.maxPointX = maxPointX
-        self.maxPointY = maxPointY
+        self.maxPointY = [y/norm_coef for y in maxPointY]
         self.minPointX = minPointX
-        self.minPointY = minPointY
+        self.minPointY = [y/norm_coef for y in minPointY]
         self.norm_coef = norm_coef
         self.datapoint = datapoint
         self.config = config
 
-    def loadfileInterval_hand(self,datapoint, start, stop):
+    def loadfileInterval_hand(self, datapoint, start, stop):
         counter = 0
         maxPointX = []
         minPointX = []

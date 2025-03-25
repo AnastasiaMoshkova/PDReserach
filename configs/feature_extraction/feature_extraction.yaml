@@ -21,7 +21,8 @@ PD:
            71, 72, 73, 74, 75, 76, 77, 78, 79, 80,
            81, 83, 90,
            #82, 85, 86, 87 - нет lmt
-           91, 92, 93, 94, 95, 96, 97, 98, 99]
+           91, 92, 93, 94, 95, 96, 97, 98, 99,
+           100, 102]
   #[1,10,52,53,55,58,59,60,65,69,73,74,76,77,78,79,80,82,84,85,86,87,88,89,92,93,94,95,96,97] #TODO
   path_to_meta: "D:\\Meta\\PD.csv" #TODO
   id_name: 'Patient'
@@ -51,8 +52,9 @@ feature_extractor:
     threshold_aplitude: 10
     feature_type: ['NumA', 'AvgFrq', 'VarFrq', 'AvgVopen', 'AvgVclose', 'AvgA', 'VarA', 'VarVopen', 'VarVclose', 'DecA','DecV']
     exercise: ['FT', 'OC', 'PS']
-    norm_coeff: 1.5 #TODO calc and realize
-    start: 1 #100
+    norm_coeff: True #False
+    norm_coeff_name: 'palm_width_mean'
+    start: 1 #100 #1 for handv22 100 for hand
     stop: 17 #1700
 
   face:

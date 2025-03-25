@@ -258,6 +258,20 @@ class FE():
         df2 = df.groupby(['id', 'r', 'm'], as_index=False)[features2].agg(agg).rename(columns=dict(zip(features, [fe.split('_')[0] + 'Diff_' + fe.split('_')[1] for fe in features])))
         return df.merge(df2, left_on=['id', 'r', 'm'], right_on=['id', 'r', 'm'])
 
+    def _norm_coefficient(self, path_to_folder, exercise):
+        if self.config_fe['feature_extractor']['hand']['norm_coeff']:
+            norm_coeff_name = self.config_fe['feature_extractor']['hand']['norm_coeff_name']
+            path = os.path.normpath(path_to_folder)
+            #path = os.path.join(*path.split(os.sep)[:-1])
+            path = os.path.join('\\'.join(path.split(os.sep)[:-1]))
+            norm_coeff_file = json.load(open(os.path.join(path, 'coefficients', 'palm_width.json')))
+            norm_coeff = norm_coeff_file[norm_coeff_name]
+        else:
+            norm_coeff = 1
+        if (exercise=='PS'):
+            norm_coeff = 1
+        return norm_coeff
+
     def feature_calculation_hand(self, path, file, exercise):
         hand = file.split('_')[1]
         m = file.split('_')[2]
@@ -270,7 +284,8 @@ class FE():
         algorithm_filtering = self.config_fe['feature_extractor']['hand']['algorithm_filtering']
         if algorithm_filtering =='by_low_amplitude':
             maxPointX, maxPointY, minPointX, minPointY = self.deleterAmplitude(maxPointX, maxPointY, minPointX, minPointY, self.config_fe['feature_extractor']['hand']['threshold_aplitude'])
-        norm_coeff = self.config_fe['feature_extractor']['hand']['norm_coeff']
+        #norm_coeff = self.config_fe['feature_extractor']['hand']['norm_coeff']
+        norm_coeff = self._norm_coefficient(path, exercise)
         feature_type = self.config_fe['feature_extractor']['hand']['feature_type']
         d = {'m': m, 'hand': hand}
         for feature in feature_type:
@@ -498,7 +513,7 @@ class FE():
     def tremor_feature_extraction_by_folder(self, data):
         # TODO class for every feature extractor
         dfs = []
-        path_to_tr_folder = os.path.join(data['path_to_folder'], 'hand')
+        path_to_tr_folder = os.path.join(data['path_to_folder'], self.config_fe['feature_extractor']['hand']['path_to_point_folder'])
         if os.path.isdir(path_to_tr_folder):
             for file in os.listdir(path_to_tr_folder):
                 for key_point in self.config_fe['feature_extractor']['tremor']['key_point']:
