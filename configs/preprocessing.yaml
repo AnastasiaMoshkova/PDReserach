@@ -4,20 +4,20 @@ class_name:
 task_name: preprocessing
 
 process_face: False
-process_hand_LM: True
+process_hand_LM: False
 process_hand_MP: True
 
 hand_folder_LM: 'handv22'
-hand_folder_PM: 'handPM'
+hand_folder_MP: 'MP'
 face_folder: 'face'
 
-path_to_lmt_exe: 'D:\\Programs\\leapmotionv22\\' #'D:\\Programs\\leapmotion\\'
-path_to_openface: 'D:\\Programs\\openface\\Release\\' #'E:\\EXeFiles\\OpenFace-master\\x64\\Release\\'
+path_to_lmt_exe: 'C:/Users/maksi/BMSTU/PD/programs/leapmotionprocessing/' #'D:\\Programs\\leapmotion\\'
+path_to_openface: 'C:/Users/maksi/BMSTU/PD/programs/OpenFace_2.2.0_win_x64/' #'E:\\EXeFiles\\OpenFace-master\\x64\\Release\\'
 
 PD:
-  path_to_directory: 'D://PD'
+  path_to_directory: 'C:/Users/maksi/Desktop/Грант_НЦН/PD_data/PD'
   id_name: 'Patient'
-  numbers: [100,102]
+  numbers: [93]
 
 HEALTHY:
   path_to_directory: 'D://HEALTHY'
@@ -25,7 +25,7 @@ HEALTHY:
   numbers: []
 
 STUDENT:
-  path_to_directory: 'D://STUDENTS'
+  path_to_directory: 'C:/Users/maksi/Desktop/Грант_НЦН/PD_data/STUDENTS'
   id_name: 'student'
   numbers: []
 

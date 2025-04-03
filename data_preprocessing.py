@@ -17,6 +17,7 @@ def main(config: DictConfig) -> None:
     #hydra_cfg = hydra.core.hydra_config.HydraConfig.get()
     #output_dir = hydra_cfg['runtime']['output_dir']
     pr = instantiate(config['class_name'], config)
+    
     pr.processing()
 
 
