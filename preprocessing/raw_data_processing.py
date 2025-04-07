@@ -8,11 +8,12 @@ import PSpincalc as sp
 import numpy as np
 import json
 import cv2
+import mediapipe as mp
+import time
 
 class PreProcessing:
     def __init__(self, config):
         self.config = config
-
 
     def video_rename(self, path_to_dir, folder, r):
         listAU = []
@@ -215,13 +216,85 @@ class PreProcessing:
         self.send_lmt_to_LM(path_to_dir, folder, r, self.config['path_to_lmt_exe'])
         self.LMJson(path_to_dir, folder, r)
 
+    def MPjson(self, path_to_dir, folder, r): # функция для формирования json по анологии с leapmotion
+        translate_hand = {'Left': 'right hand', 'Right': 'left hand'} #из-за того что видосы на фронталку, приходится руку вот так инвертировать
+        POINTS = ['CENTRE', 'THUMB_MCP', 'THUMB_PIP', 'THUMB_DIP', 'THUMB_TIP', 
+          'FORE_MCP', 'FORE_PIP', 'FORE_DIP', 'FORE_TIP', 
+          'MIDDLE_MCP', 'MIDDLE_PIP', 'MIDDLE_DIP', 'MIDDLE_TIP', 
+          'RING_MCP', 'RING_PIP', 'RING_DIP', 'RING_TIP', 
+          'LITTLE_MCP', 'LITTLE_PIP', 'LITTLE_DIP', 'LITTLE_TIP']
+        path_to_out = os.path.join(path_to_dir, folder, r, self.config['hand_folder_MP'])
+        if not os.path.exists(path_to_out):
+            os.makedirs(path_to_out)
+        path = os.path.join(path_to_dir, folder, r)
+        folders = os.listdir(path)
+        ms = [m for m in folders if re.findall(r'm\d+', m)]
+        print(ms, folder)
+        for m in ms:
+            if os.path.isdir(os.path.join(path, m)):
+                files = os.listdir(os.path.join(path, m))
+                print(files)
+                for file in files:
+                    if file.split('.')[1] in ['mp4', 'mkv', 'MOV', 'mov']:
+                        res = []
+                        path_to_file = os.path.join(path,m, file)
+                        mp_hands = mp.solutions.hands
+                        hands = mp_hands.Hands(static_image_mode=False, max_num_hands=2, min_detection_confidence=0.5)
+                        print('\n')
+                        cap = cv2.VideoCapture(path_to_file)
+                        print(f'\n\nProcessing file: {path_to_file}\n')
+                        count_frame = 1
+                        while cap.isOpened():
+                            ret, frame = cap.read()
+                            if not ret:
+                                break
+                            dict_points = {}
+                            results = hands.process(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
+
+                            if results.multi_hand_landmarks:
+                                for hand_landmarks, handedness in zip(results.multi_hand_landmarks, results.multi_handedness):
+                                    hand_label = handedness.classification[0].label
+                                    for id, landmark in enumerate(hand_landmarks.landmark):
+
+                                        if id==0:
+                                            cords = {
+                                                    "X": round(landmark.x, 3), 
+                                                    "Y": round(landmark.y, 3), 
+                                                    "Z": round(landmark.z, 3),
+                                                    "X1": round(landmark.x, 3), 
+                                                    "Y1": round(landmark.y, 3), 
+                                                    "Z1": round(landmark.z, 3),
+                                                    "W": 0, 
+                                                    "Wx": 0, 
+                                                    "Wy": 0, 
+                                                    "Wz": 0, 
+                                                    "Angle": 0
+                                                    }
+                                        else:
+                                            cords = {"X1": round(landmark.x, 3), 
+                                                    "Y1": round(landmark.y, 3), 
+                                                    "Z1": round(landmark.z, 3),
+                                                    "X": round(landmark.x, 3), 
+                                                    "Y": round(landmark.y, 3), 
+                                                    "Z": round(landmark.z, 3),
+                                                    "W": 0, 
+                                                    "Angle": 0}
+                                        dict_points.update({POINTS[id]:cords})
+                                res.append({translate_hand[hand_label]:dict_points, 'frame':count_frame})
+                                print("frame:", count_frame, end="\r", flush=True)
+                                count_frame += 1
+                        print("frame:", count_frame, end="\n")
+                        cap.release()
+                        with open(os.path.join(path_to_out, file.split('.')[0]+f'_{m}_' + folder + '.json'), 'w') as outfile:
+                            json.dump(res, outfile)
+
+
     def hand_processing_MP(self, path_to_dir, folder, r):
         '''
-        TODO
         написать функцию препроцессинга данных через MediaPipe (по примеру hand_processing_LM),
         где запись выодных данных производится в файл json с аналогичной структурой
         '''
-        pass
+        self.MPjson(path_to_dir, folder, r)
 
     def processing(self):
         for dataset in ['PD', 'HEALTHY', 'STUDENT']:
@@ -235,3 +308,4 @@ class PreProcessing:
                         self.hand_processing_LM(path_to_dir, folder, r)
                     if self.config['process_hand_MP']:
                         self.hand_processing_MP(path_to_dir, folder, r)
+
