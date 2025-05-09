@@ -1,12 +1,13 @@
 from statsmodels.nonparametric.smoothers_lowess import lowess
 from scipy.signal import argrelmax
 from scipy.signal import argrelmin
-from pylab import*
+from pylab import *
 from scipy.fftpack import rfft, irfft, fftfreq
+from scipy import signal
 '''
 реализация алгоритма "Adaptive" автоматизированной расстановки точек экстремума для сигналов двигательной активности рук
 '''
-
+TIMESTAMP_COEFFICIENT = 1000000
 class Adaptive():
     def __init__(self, **config):
         self.config = config
@@ -79,12 +80,34 @@ class Adaptive():
     получения точек максиммумов и минимумов на основе побдора параметров 
     '''
 
+
+    def deleterAmplitude(self, maxPointX, maxPointY, minPointX, minPointY, threshhold):
+        resultMax = []
+        resultMin = []
+        for i in range(len(maxPointX)):
+            if (maxPointY[i] - minPointY[i + 1]) < threshhold:
+                resultMax.append(i)
+                resultMin.append(i + 1)
+
+        if len(resultMax) != 0:
+            resultMax.reverse()
+            for k in resultMax:
+                del maxPointX[k]
+                del maxPointY[k]
+        if len(resultMin) != 0:
+            resultMin.reverse()
+            for k in resultMin:
+                del minPointX[k]
+                del minPointY[k]
+        return maxPointX, maxPointY, minPointX, minPointY
+
     def get_point(self, values, frame):
         values = np.array(values)
+        #values = signal.detrend(values)
         W = fftfreq(values.size, d=frame[1] - frame[0])
         f_signal = rfft(values)
         lst = list(abs(f_signal[1:300] / 1000))
-        ff = list(W[1:300] * 100)
+        ff = list(W[1:300])
         m = lst.index(max(lst))
         if m > 20:
             index1, index2 = m - 10, m + 10
@@ -93,20 +116,23 @@ class Adaptive():
 
         if ((ff[m] >= 3.9) & (ff[m] < 10)):
             frac, order_min, order_max = 0.01, 10, 10
-        if ((ff[m] <= 2.5)):
-            frac, order_min, order_max = 0.03, 30, 30
         if ((ff[m] <= 3.9) & (ff[m] > 2.5)):
             frac, order_min, order_max = 0.02, 20, 20
-        if ((ff[m] >= 10)):
-            frac, order_min, order_max = 0.005, 10, 10
+        if ((ff[m] <= 2.5) & (ff[m] > 1)):
+            frac, order_min, order_max = 0.03, 30, 30
         if ((ff[m] <= 1)):
             frac, order_min, order_max = 0.01, 10, 10
+        if ((ff[m] >= 10)):
+            frac, order_min, order_max = 0.005, 10, 10
 
         K = self._calc_spectrIndex(abs(f_signal[1:300] / 1000), index1, index2) / self._calc_spectr(abs(f_signal[1:300] / 1000))
         if ((K < 0.5)):
             frac, order_min, order_max = 0.005, 10, 10
+            #frac, order_min, order_max = 0.005, 5, 5
 
+        fps = 1/(frame[1] - frame[0])
+        frac, order_min, order_max = frac * fps/100, round(order_min * fps/100), round(order_max * fps/100)
         maxTemp, minTemp = self._point_alg_signal(values, frame, frac=frac, order_min=order_min, order_max=order_max)
         maxP, minP, maxA, minA = self._signalPoint(list(maxTemp[0]), minTemp[0], list(values[maxTemp[0]]), list(values[minTemp[0]]))
-        # maxP, maxA, minP, minA=DeleterAmplitude(maxP, maxA, minP, minA)
+        #maxP, maxA, minP, minA = self.deleterAmplitude(maxP, maxA, minP, minA, 10)
         return maxP, minP, maxA, minA, frac, order_min, order_max

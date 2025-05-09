@@ -10,6 +10,9 @@ import shutil
 from pprint import pprint
 import matplotlib.pyplot as plt
 from matplotlib.pyplot import figure
+from data_base.hand3D import HandData
+from data_base.hand2D import HandDataAngle
+
 '''
 реализация класса расстановки точек экстремума с учетом выбранной модальности
 '''
@@ -36,19 +39,6 @@ class AutoMarking():
         df['dataset'] = dataset
         return df.loc[df['number'].isin(self.config['automarking'][dataset]['number'])]
 
-    '''
-    def data_parser(self, dataset):
-        df_result = []
-        path_to_dir = self.config['automarking'][dataset]['path_to_directory']
-        folders = os.listdir(self.config['automarking'][dataset]['path_to_directory'])
-        df = pd.DataFrame(folders, columns=['folders'])
-        df['path'] = path_to_dir + '//' + df['folders']
-        folder_name = self.config['automarking'][dataset]['folder_name']
-        df['number'] = df['folders'].str.split(folder_name).str[1].apply(int)
-        df['dataset'] = dataset
-        df_result.append(df.loc[df['number'].isin(self.config['automarking'][dataset]['number'])])
-        return pd.concat(df_result).reset_index(drop=True)
-    '''
     def data_processing(self):
         df_result = []
         for dataset in self.config['automarking']['dataset_type']:
@@ -78,6 +68,20 @@ class AutoMarking():
             with open(os.path.join(path, file_point), 'w') as f:
                 json.dump(datapoint, f)
 
+    def write_point_hand_timestamps(self, path, file, maxP, minP, maxA, minA, frac, order_min, order_max):
+        datapoint = []
+        for i in range(len(maxP)):
+            datapoint.append({"Type": 1, "Scale": 1.0, "Brush": "#FFFF0000", "X": float(maxP[i]), "Y": maxA[i]})
+        for i in range(len(minP)):
+            datapoint.append({"Type": 0, "Scale": 1.0, "Brush": "#FF0000FF", "X": float(minP[i]), "Y": minA[i]})
+        datapoint = sorted(datapoint, key=lambda k: k['X'])
+        file_point = file.split('.json')[0] + '_'.join(['_point', str(frac), str(order_min), str(order_max)])+'.json'
+        if len(datapoint) != 0:
+            if not os.path.isdir(path):
+                os.mkdir(path)
+            with open(os.path.join(path, file_point), 'w') as f:
+                json.dump(datapoint, f)
+
     #запись точек в словарь
     def write_point_face(self, maxP, minP, maxA, minA):
         datapoint = []
@@ -92,41 +96,10 @@ class AutoMarking():
     def save_point_face(self, path, file, datapoint):
         if not os.path.isdir(path):
             os.mkdir(path)
-        with open(os.path.join(path, file), 'w') as f:
+        with open(os.path.join(path, file.split('.')[0] + '.json'), 'w') as f:
             json.dump(datapoint, f)
 
-    def plot_image(self, values, frame, maxPointX, minPointX, maxPointY, minPointY, path_to_save, title):
-        figure(figsize=(32, 6), dpi=80)
-        plt.plot(frame, values)
-        plt.plot(maxPointX, maxPointY, 'ro')
-        plt.plot(minPointX, minPointY, 'bo')
-        plt.xlabel('frame')
-        plt.ylabel('Distance')
-        plt.title(title)
-        plt.savefig(path_to_save)
-        plt.clf()
 
-    #получение сигналов двигательной активности рук по номеру упражнения
-    def signal_exersice_hand(self, data, hand, exersice):
-        if exersice=='1':
-            values, frame = self.signal_FT(data, hand)
-        if exersice=='2':
-            values, frame = self.signal_OC(data, hand)
-        if exersice=='3':
-            values, frame = self.signal_PS(data, hand)
-        return values, frame
-
-    #получение сигналов двигательной активности рук
-    def signal_hand(self, file, exersice, hand_type):
-        hand_dict = {'L':'left hand', 'R':'right hand'}
-        hand = hand_dict[hand_type]
-        data = json.load(open(file))
-        values, frame = self.signal_exersice_hand(data, hand, exersice)
-        if len(values) < self.config['automarking']['hand']['threshold_data_length']: #TODO #if len(values)==0:
-            del hand_dict[hand_type]
-            hand = hand_dict[list(hand_dict.keys())[0]]
-            values, frame = self.signal_exersice_hand(data, hand, exersice)
-        return values, frame
 
     #получение сигналов мимической активности
     def signal_face(self, file, au):
@@ -140,52 +113,15 @@ class AutoMarking():
             values, frame = [], []
         return values, frame
 
-    #построение сигнала "постукивание пальцами"
-    def signal_FT(self, data, hand):
-        frame = []
-        values = []
-        for i in range(len(data)):
-            if hand in data[i].keys():
-                sum_sqr = ((float(data[i][hand]['FORE_TIP']['X1']) - float(data[i][hand]['THUMB_TIP']['X1'])) ** 2 +
-                           (float(data[i][hand]['FORE_TIP']['Y1']) - float(data[i][hand]['THUMB_TIP']['Y1'])) ** 2 +
-                           (float(data[i][hand]['FORE_TIP']['Z1']) - float(data[i][hand]['THUMB_TIP']['Z1'])) ** 2)
-                distance = math.sqrt(sum_sqr)
-                values.append(distance)
-                frame.append(data[i][self.config['automarking']['hand']['timestamp']])
-        return values, frame
-
-    #построение сигнала "открытие/закрытие ладони"
-    def signal_OC(self, data, hand):
-        frame = []
-        values = []
-        for i in range(len(data)):
-            if hand in data[i].keys():
-                sum_sqr = (float(data[i][hand]['MIDDLE_TIP']['X1']) - float(data[i][hand]['CENTRE']['X'])) ** 2 + (
-                                  float(data[i][hand]['MIDDLE_TIP']['Y1']) - float(data[i][hand]['CENTRE']['Y'])) ** 2 + (
-                                      float(data[i][hand]['MIDDLE_TIP']['Z1']) - float(data[i][hand]['CENTRE']['Z'])) ** 2
-                distance = math.sqrt(sum_sqr)
-                values.append(distance)
-                frame.append(data[i][data[i][self.config['automarking']['hand']['timestamp']]])
-        return values, frame
-
-    # построение сигнала "пронация/супинация ладони"
-    def signal_PS(self, data, hand):
-        frame = []
-        values = []
-        for i in range(len(data)):
-            if hand in data[i].keys():
-                values.append(float(data[i][hand]['CENTRE']['Angle']))
-                frame.append(data[i][data[i][self.config['automarking']['hand']['timestamp']]])
-        return values, frame
-
     def signal_AU(self, file, au):
         pass
 
     #получение точек авто разметки по сигналам двигательной активности рук
-    def auto_point_hand(self, values, frame):
-        auto_alg_class = instantiate(self.config['automarking']['hand']['auto_alg_class'])
+    def auto_point_hand(self, values, frame, mode):
+        auto_alg_class = instantiate(self.config['automarking'][mode]['auto_alg_class'])
         maxP, minP, maxA, minA, frac, order_min, order_max = auto_alg_class.get_point(values, frame)
-        return maxP, minP, maxA, minA, frac, order_min, order_max
+        return np.array(frame)[maxP], np.array(frame)[minP], maxA, minA, frac, order_min, order_max
+        #return maxP, minP, maxA, minA, frac, order_min, order_max
 
     #получение точек авто разметки по сигналам мимической активности
     def auto_point_face(self, values, frame):
@@ -194,28 +130,29 @@ class AutoMarking():
         return maxP, minP, maxA, minA, frac, order_min, order_max
 
 
-    def hand_processing_auto_point(self, path, output_dir):
-        input_folder = self.config['automarking']['hand']['input_folder']
+    def hand_processing_auto_point(self, path, output_dir, type_signal, mode):
+        signal_class = instantiate(self.config['automarking']['signal_class'][type_signal])
+        input_folder = self.config['automarking'][mode]['input_folder']
         exercise_dict = {'FT':'1', 'OC':'2', 'PS':'3'}
-        exercises = [exercise_dict[ex] for ex in self.config['automarking']['hand']['exercise']]
-        folder_to_save = os.path.join(path, self.config['automarking']['hand']['output_folder'])
+        exercises = [exercise_dict[ex] for ex in self.config['automarking'][mode]['exercise']]
+        folder_to_save = os.path.join(path, self.config['automarking'][mode]['output_folder'] + '_' + type_signal)
         if os.path.isdir(folder_to_save):
             shutil.rmtree(folder_to_save)
         if os.path.isdir(os.path.join(path, input_folder)):
             for file in os.listdir(os.path.join(path, input_folder)):
                 if '.json' in file:
-                    exercise = file.split('leapRecording')[1].split('_')[0]
+                    exercise = file.split(self.config['automarking'][mode]['record_title'])[1].split('_')[0]
                     if exercise in exercises:
                         hand = file.split('_')[1]
-                        values, frame = self.signal_hand(os.path.join(path, input_folder, file), exercise, hand)
-                        if len(values) > self.config['automarking']['hand']['threshold_data_length']:
-                            maxP, minP, maxA, minA, frac, order_min, order_max = self.auto_point_hand(values, frame)
+                        values, frame, palm_width = signal_class.signal_hand(os.path.join(path, input_folder, file), exercise, hand)
+                        if len(values) > self.config['automarking'][mode]['threshold_data_length']:
+                            maxP, minP, maxA, minA, frac, order_min, order_max = self.auto_point_hand(values, frame, mode)
                             #maxP, minP, maxA, minA = self.signalPoint(maxP, minP, maxA, minA)
                             if self.config['automarking']['image_save']:
-                                if not os.path.isdir(os.path.join(output_dir, 'hand')):
-                                    os.mkdir(os.path.join(output_dir, 'hand'))
-                                path_to_save_image = os.path.join(output_dir, input_folder, file.split('.json')[0]+'png')
-                                self.plot_image(values, frame, maxP, minP, maxA, minA, path_to_save_image, file.split('.json')[0])
+                                if not os.path.isdir(os.path.join(output_dir, mode)):
+                                    os.mkdir(os.path.join(output_dir, mode))
+                                path_to_save_image = os.path.join(output_dir, mode, file.split('.')[0] + '_' + mode + '_' + type_signal + '.png')
+                                signal_class.plot_image(values, frame, maxP, minP, maxA, minA, path_to_save_image, file.split('.')[0])
                             self.write_point_hand(folder_to_save, file, maxP, minP, maxA, minA, frac, order_min, order_max)
 
     def face_processing_auto_point(self, path, output_dir):
@@ -248,7 +185,8 @@ class AutoMarking():
         df = self.data_processing()
         for path in df['path']:
             for mode in self.config['automarking']['mode']:
-                if mode=='hand':
-                    self.hand_processing_auto_point(path, output_dir)
+                if ((mode=='hand') | (mode=='handMP')):
+                    for task_type in self.config['automarking']['signal_class'].keys():
+                        self.hand_processing_auto_point(path, output_dir, task_type, mode)
                 if mode=='face':
                     self.face_processing_auto_point(path, output_dir)
