@@ -69,7 +69,7 @@ class CheckData(HandData):
         print(path_to_dir,file_signal)
         exersice = file_signal.split('_')[0].split('leapRecording')[1]
         hand_type = file_signal.split('_')[1]
-        values, frame = self.signal_hand(os.path.join(path_to_dir, self.config['hand']['folder'], file_signal), exersice, hand_type)
+        values, frame, _ = self.signal_hand(os.path.join(path_to_dir, self.config['hand']['folder'], file_signal), exersice, hand_type)
         if os.path.isfile(os.path.join(path_to_dir, self.config['hand']['path_to_mannual_point'], str(file_mannual_point))):
             point_mannual = json.load(open(os.path.join(path_to_dir, self.config['hand']['path_to_mannual_point'], str(file_mannual_point))))
         if os.path.isfile(os.path.join(path_to_dir, self.config['hand']['path_to_auto_point'], str(file_auto_point))):

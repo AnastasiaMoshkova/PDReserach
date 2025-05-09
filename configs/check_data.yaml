@@ -21,7 +21,7 @@ PD:
            81, 83, 90,
            #82, 85, 86, 87 - нет lmt
            91, 92, 93, 94, 95, 96, 97, 98, 99,
-           100, 102]
+           100, 102, 103, 104, 105, 106]
   id_name: 'Patient'
 
 HEALTHY:
@@ -31,20 +31,20 @@ HEALTHY:
 
 STUDENT:
   path_to_directory: 'D://STUDENTS'
-  number:  [16] #[]
+  number:  [] #[]
   id_name: 'student'
 
 
 hand:
   path_to_mannual_point: 'mannual_point_v2'
-  path_to_auto_point: 'auto_algorithm_hand'
+  path_to_auto_point: 'auto_algorithm_hand2'
   exercise: ['leapRecording1_L.lmt','leapRecording1_R.lmt','leapRecording2_L.lmt','leapRecording2_R.lmt','leapRecording3_L.lmt','leapRecording3_R.lmt']
   length_threshold: 1700
   folder: 'handv22'
 
 face:
   path_to_mannual_point: 'mannual_point_face'
-  path_to_auto_point: 'auto_algorithm_face'
+  path_to_auto_point: 'auto_algorithm_face2'
   exercise:
     'p5': [ 'AU12' ]
     'p11': [ 'AU4' ]
