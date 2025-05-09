@@ -8,6 +8,7 @@ import PSpincalc as sp
 import numpy as np
 import json
 import cv2
+import mediapipe as mp
 
 class PreProcessing:
     def __init__(self, config):
@@ -29,7 +30,8 @@ class PreProcessing:
         for file in os.listdir(path):
             if 'mp4' in file:
                 if (file.split('.')[1] == 'mp4'):
-                    if (file.split('_')[0] in ['p2', 'p3', 'p5', 'p11']):
+                    if (file.split('_')[0] in self.config['face_task']):
+                    #if (file.split('_')[0] in ['p1', 'p2', 'p3', 'p5', 'p11']):
                         listAU.append(file)
 
         for i in range(len(listAU)):
@@ -56,12 +58,14 @@ class PreProcessing:
             if 'mp4' in file:
                 if file.split('_')[0] in ['p12', 'p13']:
                     folder_frame = os.path.join(path, file.split('_')[0] + '_' + file.split('_')[1])
-                    os.mkdir(folder_frame)
+                    if not os.path.exists(folder_frame):
+                        os.mkdir(folder_frame)
                     self.video_to_frames(os.path.join(path, file), folder_frame, self.config['every_frames'])
                     # print(folder_frame,file)
                 if file.split('_')[0] == 'p1':
                     folder_frame = os.path.join(path, 'p1')
-                    os.mkdir(folder_frame)
+                    if not os.path.exists(folder_frame):
+                        os.mkdir(folder_frame)
                     self.video_to_frames(os.path.join(path, file), folder_frame, 60)
 
     def video_to_FaceLandmarkImg(self, path_to_dir, folder, r, path_to_openface):
@@ -84,6 +88,9 @@ class PreProcessing:
                        subprocess.run(os.path.join(path_to_RecordPlaybackSample,'RecordPlaybackSample.exe') + ' ' + os.path.join(path, m, file) + " " + os.path.join(path, self.config['hand_folder_LM'], file.split('.')[0] + '_' + m + '_' + folder + '.txt'))
 
 
+    def palm_width_calc(self):
+        pass
+
     def LMJson(self, path_to_dir, folder, r):
         path = os.path.join(path_to_dir, folder, r, self.config['hand_folder_LM'])
         for file in os.listdir(path):
@@ -92,6 +99,7 @@ class PreProcessing:
                 f = open(os.path.join(path, file), 'r', encoding='utf-8', errors='ignore')
                 d = {}
                 res = []
+
                 FINGER = ["THUMB_MCP", "THUMB_PIP", "THUMB_DIP", "THUMB_TIP",
                           "FORE_MCP", "FORE_PIP", "FORE_DIP", "FORE_TIP",
                           "MIDDLE_MCP", "MIDDLE_PIP", "MIDDLE_DIP", "MIDDLE_TIP",
@@ -122,6 +130,8 @@ class PreProcessing:
                         tracking_frame_id = int(line.split("tracking_img_id")[1].split()[0])
                         framerate = float(line.split("fps")[1].split()[0])
                         version = line.split("version")[1].split()[0]
+
+                        palm_width_record = []
 
                         d.update({'info':{"confidence": confidence,
                                   "id_frame": id_frame,
@@ -215,13 +225,106 @@ class PreProcessing:
         self.send_lmt_to_LM(path_to_dir, folder, r, self.config['path_to_lmt_exe'])
         self.LMJson(path_to_dir, folder, r)
 
+    def MPjson(self, path_to_dir, folder, r):  # функция для формирования json по анологии с leapmotion
+        translate_hand = {'Left': 'right hand',
+                          'Right': 'left hand'}  # из-за того что видосы на фронталку, приходится руку вот так инвертировать
+        POINTS = ['CENTRE', 'THUMB_MCP', 'THUMB_PIP', 'THUMB_DIP', 'THUMB_TIP',
+                  'FORE_MCP', 'FORE_PIP', 'FORE_DIP', 'FORE_TIP',
+                  'MIDDLE_MCP', 'MIDDLE_PIP', 'MIDDLE_DIP', 'MIDDLE_TIP',
+                  'RING_MCP', 'RING_PIP', 'RING_DIP', 'RING_TIP',
+                  'LITTLE_MCP', 'LITTLE_PIP', 'LITTLE_DIP', 'LITTLE_TIP']
+        path_to_out = os.path.join(path_to_dir, folder, r, self.config['hand_folder_MP'])
+        if not os.path.exists(path_to_out):
+            os.makedirs(path_to_out)
+        path = os.path.join(path_to_dir, folder, r)
+        folders = os.listdir(path)
+        ms = [m for m in folders if re.findall(r'm\d+', m)]
+        print(ms, folder)
+        for m in ms:
+            if os.path.isdir(os.path.join(path, m)):
+                files = os.listdir(os.path.join(path, m))
+                print(files)
+                for file in files:
+                    if file.split('.')[1] in ['mp4', 'mkv', 'MOV', 'mov']:
+                        res = []
+                        timestamp = 0
+                        path_to_file = os.path.join(path, m, file)
+                        mp_hands = mp.solutions.hands
+                        hands = mp_hands.Hands(static_image_mode=False, max_num_hands=2, min_detection_confidence=0.5)
+                        print('\n')
+                        cap = cv2.VideoCapture(path_to_file)
+                        fps = cap.get(cv2.CAP_PROP_FPS)
+                        print(f'\n\nProcessing file: {path_to_file}\n')
+                        count_frame = 1
+                        while cap.isOpened():
+                            ret, frame = cap.read()
+                            if not ret:
+                                break
+                            dict_points = {}
+                            results = hands.process(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
+
+                            if results.multi_hand_landmarks:
+                                for hand_landmarks, handedness in zip(results.multi_hand_landmarks,
+                                                                      results.multi_handedness):
+                                    hand_label = handedness.classification[0].label
+                                    for id, landmark in enumerate(hand_landmarks.landmark):
+
+                                        if id == 0:
+                                            cords = {
+                                                "X": round(landmark.x, 3),
+                                                "Y": round(landmark.y, 3),
+                                                "Z": round(landmark.z, 3),
+                                                "X1": round(landmark.x, 3),
+                                                "Y1": round(landmark.y, 3),
+                                                "Z1": round(landmark.z, 3),
+                                                "W": 0,
+                                                "Wx": 0,
+                                                "Wy": 0,
+                                                "Wz": 0,
+                                                "Angle": 0
+                                            }
+                                        else:
+                                            cords = {"X1": round(landmark.x, 3),
+                                                     "Y1": round(landmark.y, 3),
+                                                     "Z1": round(landmark.z, 3),
+                                                     "X": round(landmark.x, 3),
+                                                     "Y": round(landmark.y, 3),
+                                                     "Z": round(landmark.z, 3),
+                                                     "W": 0,
+                                                     "Angle": 0}
+                                        dict_points.update({POINTS[id]: cords})
+
+                                        dict_points.update({'info': {"confidence": np.NaN,
+                                                           "id_frame": np.NaN,
+                                                           "visible_time": np.NaN,
+                                                           "pinch_distance": np.NaN,
+                                                           "pinch_strength": np.NaN,
+                                                           "grab_angle": np.NaN,
+                                                           "grab_strength": np.NaN,
+                                                           "palm_width": np.NaN,
+                                                           "timestamp": timestamp * 1000000,
+                                                           "frame_id": np.NaN,
+                                                           "tracking_frame_id": np.NaN,
+                                                           "framerate": fps,
+                                                           "version": np.NaN}
+                                                  })
+
+                                res.append({translate_hand[hand_label]: dict_points, 'frame': count_frame})
+                                print("frame:", count_frame, end="\r", flush=True)
+                                count_frame += 1
+                                timestamp += 1/fps
+                        print("frame:", count_frame, end="\n")
+                        cap.release()
+                        with open(os.path.join(path_to_out, file.split('.')[0] + f'_{m}_' + folder + '.json'),
+                                  'w') as outfile:
+                            json.dump(res, outfile)
+
     def hand_processing_MP(self, path_to_dir, folder, r):
         '''
-        TODO
         написать функцию препроцессинга данных через MediaPipe (по примеру hand_processing_LM),
         где запись выодных данных производится в файл json с аналогичной структурой
         '''
-        pass
+        self.MPjson(path_to_dir, folder, r)
 
     def processing(self):
         for dataset in ['PD', 'HEALTHY', 'STUDENT']:
@@ -234,4 +337,6 @@ class PreProcessing:
                     if self.config['process_hand_LM']:
                         self.hand_processing_LM(path_to_dir, folder, r)
                     if self.config['process_hand_MP']:
+                        #if os.path.isdir(folder_to_save):
+                            #shutil.rmtree(folder_to_save)
                         self.hand_processing_MP(path_to_dir, folder, r)
