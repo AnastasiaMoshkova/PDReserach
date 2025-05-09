@@ -1,0 +1,20 @@
+class_name:
+  _target_: ml_cls.automl_experiment.AutoMLJar
+
+features: ['VarFrq_PS','AvgFrqF_AU4_p11','DA_Surprise','AvgVopen_AU4_p11','DecFV_AU4_p11','DI_Happiness','VarVopen_PS','DI_Disgust','AvgVopen_PS','VarA_FT','AvgA_OC','AvgVopen_FT','NumA_PS','VarVclose_FT','AvgFrqF_AU12_p5','NumA_OC','DecA_FT','AvgVopen_OC','AvgVclose_AU12_p5','AvgFrq_FT','DA_Anger','Length_AU12_p5']
+datasets: ['PD', 'HEALTHY', 'STUDENT']
+algorithms: ['CatBoost','Extra Trees']#['Baseline',  'CatBoost', 'Decision Tree', 'Extra Trees', 'Nearest Neighbors', 'LightGBM', 'Linear', 'Neural Network', 'Random Forest', 'Xgboost']
+mode: 'Compete'
+ml_task: "multiclass_classification"
+eval_metric: "accuracy"
+total_time_limit_hours: 3
+explain_level: 2
+
+target_regression:
+  column: 'stage'
+  replace:
+    2.5: 2.5
+    3.5: 3.5
+
+cv:
+  folds: 8
