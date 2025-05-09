@@ -65,3 +65,6 @@ DecValueV:
 NumAF:
   _target_: feature_extraction.feature.NumAF
   config:
+DecLin:
+  _target_: feature_extraction.feature.DecLin
+  config:

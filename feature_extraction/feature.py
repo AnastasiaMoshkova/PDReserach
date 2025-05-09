@@ -298,3 +298,18 @@ class decValueV(Feature):
                 counter = counter + 1
                 z.append(1 - dec[j])
         return sum(z)
+
+class DecLin(Feature):
+    def calc(self):
+        '''
+        start = self.config['start']
+        stop = self.config['stop']
+
+        maxPointX, maxPointY, minPointX, minPointY = self.loadfileInterval_hand(self.datapoint, start, stop)
+        '''
+        if len(self.maxPointX) < 2:
+            return np.NaN
+        else:
+            coef = np.polyfit(self.maxPointX, self.maxPointY, 1)
+            return coef[0]
+
