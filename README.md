@@ -86,7 +86,7 @@
 
 - двигательная активность рук, тремор [RecordPlaybackSample](https://github.com/AnastasiaMoshkova/LeapMotionPlayback) (чтение '.lmt')
 - мимика OpenFace 
-- приложение для разметки данных - скоро на githab (пока что бинарники в архиве на гугл диске)
+- приложение для разметки данных - [PointMaker](https://github.com/AnastasiaMoshkova/PointMarker/tree/master)
 
 ### Описание экспериментов
 
