@@ -1,0 +1,30 @@
+class_name:
+  _target_: checking_data.hand_marking_point_correction.PointCorrection
+
+defaults:
+  - _self_
+  - hydra: default
+
+PD:
+  path_to_directory: 'D://PD'
+  number: [103, 104, 105, 106]
+  id_name: 'Patient'
+
+HEALTHY:
+  path_to_directory: 'D://HEALTHY'
+  number: [] #[5]
+  id_name: 'Healthy'
+
+STUDENT:
+  path_to_directory: 'D://STUDENTS'
+  number:  [] #[]
+  id_name: 'student'
+
+
+hand:
+  folder_signals: 'handv22'
+  folder_in: 'mannual_point'
+  folder_out: 'mannual_point_v2'
+
+
+task_name: data_verification
