@@ -5,6 +5,7 @@ import json
 import math
 import glob
 from functools import reduce
+from scipy.signal import find_peaks
 from hydra.utils import instantiate
 from data_base.tremor import TremorProcessing
 
@@ -23,7 +24,7 @@ class FE():
             r_number = []
             number = []
             df = pd.read_csv(self.config_fe[dataset]['path_to_meta'])
-            df = df[['№', 'ФИО', 'Год рождения', 'Стадия по Хен-Яру', 'Возраст', 'Пол', 'face data quality', 'hand data quality', 'Сумма баллов ч.1, 2 и 4', 'Сумма баллов (только моторика, часть 3 UPDRS)', 'Сумма баллов (все части UPDRS)', 'UPDRS_HAND_FACE', '3.2_Выразительность лица', '3.4a_FT','3.4b_FT',	'3.5a_OC', '3.5b_OC', '3.6a_PS', '3.6b_PS']] #.drop([0,1])
+            df = df[['№', 'ФИО', 'Год рождения', 'Стадия по Хен-Яру', 'Возраст', 'Пол', 'face data quality', 'hand data quality', 'Сумма баллов ч.1, 2 и 4', 'Сумма баллов (только моторика, часть 3 UPDRS)', 'Сумма баллов (все части UPDRS)', 'UPDRS_HAND_FACE', '3.2_Выразительность лица', '3.4a_FT','3.4b_FT',	'3.5a_OC', '3.5b_OC', '3.6a_PS', '3.6b_PS', '3.15a_Постуральный тремор', '3.15b_Постуральный тремор', '3.16a_Кинетический тремор',	'3.16b_Кинетический тремор',	'3.17a_Амплитуда термора покоя',	'3.17b_Амплитуда термора покоя',	'3.17c_Амплитуда термора покоя',	'3.17d_Амплитуда термора покоя',	'3.17e_Амплитуда термора покоя',	'3.18_Постоянство тремора покоя']] #.drop([0,1])
             df['Стадия по Хен-Яру'] = df['Стадия по Хен-Яру'].replace('Атипичный', -1).replace('2,5', 2.5).replace('3,5', 3.5).apply(float)
             df[['Сумма баллов ч.1, 2 и 4', 'Сумма баллов (только моторика, часть 3 UPDRS)', 'Сумма баллов (все части UPDRS)', 'UPDRS_HAND_FACE', '3.2_Выразительность лица', '3.4a_FT','3.4b_FT',	'3.5a_OC', '3.5b_OC', '3.6a_PS', '3.6b_PS']] = df[['Сумма баллов ч.1, 2 и 4', 'Сумма баллов (только моторика, часть 3 UPDRS)', 'Сумма баллов (все части UPDRS)', 'UPDRS_HAND_FACE', '3.2_Выразительность лица', '3.4a_FT','3.4b_FT','3.5a_OC', '3.5b_OC', '3.6a_PS', '3.6b_PS']].replace(regex={',': '.'}).astype(float)
             df['№'] = df['№'].apply(int)
@@ -247,20 +248,23 @@ class FE():
         if self.config_fe['feature_extractor']['em']['frame_au_agg'] == 'mean':
             return np.mean(feature) #np.max(feature) #np.mean(feature) #TODO different
 
-    def feature_difference_between_hand(self, df):
-        features = [name + '_' + ex for ex in self.config_fe['feature_extractor']['hand']['exercise'] for name in self.config_fe['feature_extractor']['hand']['feature_type']]
+    def feature_difference_between_hand(self, df, mode):
+        signal_type = self.config_fe['feature_extractor'][mode]['signal_type']
+        features = [name + '_' + ex + '_' +  signal_type for ex in self.config_fe['feature_extractor'][mode]['exercise'] for name in self.config_fe['feature_extractor'][mode]['feature_type']]
         agg = {'id': 'first', 'r': 'first', 'm': 'first'}
         f = lambda x: abs(x.diff().dropna().values[0]) if ((len(x.dropna()) == 2) & (-1 not in set(x))) else np.NaN
         for feature in features:
             agg.update({feature: f})
         features2 = ['id', 'r', 'm']
         features2.extend(features)
-        df2 = df.groupby(['id', 'r', 'm'], as_index=False)[features2].agg(agg).rename(columns=dict(zip(features, [fe.split('_')[0] + 'Diff_' + fe.split('_')[1] for fe in features])))
+        #df2 = df.groupby(['id', 'r', 'm'], as_index=False)[features2].agg(agg).rename(columns=dict(zip(features, [fe.split('_')[0] + 'Diff_' + fe.split('_')[1] for fe in features])))
+        df2 = df.groupby(['id', 'r', 'm'], as_index=False)[features2].agg(agg).rename(
+            columns=dict(zip(features, [fe.split('_')[0] + 'Diff_' + fe.split('_')[1] + '_' + signal_type for fe in features])))
         return df.merge(df2, left_on=['id', 'r', 'm'], right_on=['id', 'r', 'm'])
 
-    def _norm_coefficient(self, path_to_folder, exercise):
-        if self.config_fe['feature_extractor']['hand']['norm_coeff']:
-            norm_coeff_name = self.config_fe['feature_extractor']['hand']['norm_coeff_name']
+    def _norm_coefficient(self, path_to_folder, exercise, mode):
+        if self.config_fe['feature_extractor'][mode]['norm_coeff']:
+            norm_coeff_name = self.config_fe['feature_extractor'][mode]['norm_coeff_name']
             path = os.path.normpath(path_to_folder)
             #path = os.path.join(*path.split(os.sep)[:-1])
             path = os.path.join('\\'.join(path.split(os.sep)[:-1]))
@@ -272,29 +276,30 @@ class FE():
             norm_coeff = 1
         return norm_coeff
 
-    def feature_calculation_hand(self, path, file, exercise):
+    def feature_calculation_hand(self, path, file, exercise, mode):
         hand = file.split('_')[1]
         m = file.split('_')[2]
         patient_id = file.split('_')[3]
         path_to_file = os.path.join(path, file)
         datapoint = json.load(open(path_to_file))
-        start = self.config_fe['feature_extractor']['hand']['start']
-        stop = self.config_fe['feature_extractor']['hand']['stop']
+        start = self.config_fe['feature_extractor'][mode]['start']
+        stop = self.config_fe['feature_extractor'][mode]['stop']
         maxPointX, maxPointY, minPointX, minPointY = self.loadfileInterval_hand(datapoint, start, stop)
-        algorithm_filtering = self.config_fe['feature_extractor']['hand']['algorithm_filtering']
+        algorithm_filtering = self.config_fe['feature_extractor'][mode]['algorithm_filtering']
         if algorithm_filtering =='by_low_amplitude':
-            maxPointX, maxPointY, minPointX, minPointY = self.deleterAmplitude(maxPointX, maxPointY, minPointX, minPointY, self.config_fe['feature_extractor']['hand']['threshold_aplitude'])
+            maxPointX, maxPointY, minPointX, minPointY = self.deleterAmplitude(maxPointX, maxPointY, minPointX, minPointY, self.config_fe['feature_extractor'][mode]['threshold_aplitude'][exercise])
         #norm_coeff = self.config_fe['feature_extractor']['hand']['norm_coeff']
-        norm_coeff = self._norm_coefficient(path, exercise)
-        feature_type = self.config_fe['feature_extractor']['hand']['feature_type']
+        norm_coeff = self._norm_coefficient(path, exercise, mode)
+        feature_type = self.config_fe['feature_extractor'][mode]['feature_type']
         d = {'m': m, 'hand': hand}
+        signal_type = self.config_fe['feature_extractor'][mode]['signal_type']
         for feature in feature_type:
             if len(maxPointX) > 1:
                 #d.update({feature+'_'+exercise:self.feature1(data)})
                 feature_class = instantiate(self.config_feature[feature], maxPointX, maxPointY, minPointX, minPointY, norm_coeff, datapoint)
-                d.update({feature + '_' + exercise: feature_class.calc()})
+                d.update({feature + '_' + exercise + '_' + signal_type: feature_class.calc()})
             else:
-                d.update({feature + '_' + exercise: -1})
+                d.update({feature + '_' + exercise + '_' + signal_type: -1})
         return d
 
     def feature_calculation_face(self, path, file, exercise):
@@ -340,10 +345,21 @@ class FE():
                     d.update({exercise + '_' + feature: np.NaN})
         return d
 
-    def feature_calculation_tremor(self, path_to_tr_folder, file, key_point):
+    def feature_calculation_tremor(self, path_to_tr_folder, file, key_point, hand):
         feature_type = self.config_fe['feature_extractor']['tremor']['feature_type']
-        hand = file.split('_')[1]
+        start, stop = self.config_fe['feature_extractor']['tremor']['start'], self.config_fe['feature_extractor']['tremor']['stop']
+        #hand = file.split('_')[1]
         m = file.split('_')[2]
+        d = {'m': m, 'hand': hand}
+        for frq in self.config_fe['feature_extractor']['tremor']['frequency']:
+            tremor_features = self.TR.get_features(path_to_tr_folder, file, hand, key_point, frq, start, stop)
+            for feature in feature_type:
+                if feature in tremor_features.keys():
+                    d.update({feature + str(frq[0]) + str(frq[1]) + '_' + key_point: tremor_features[feature]})
+                else:
+                    d.update({feature + str(frq[0]) + str(frq[1]) + '_' + key_point: np.NaN})
+
+        '''
         if hand == 'RL':
             for hand_type in ['R', 'L']:
                 d = {'m': m, 'hand': hand_type}
@@ -361,6 +377,7 @@ class FE():
                     d.update({feature + '_' + key_point: tremor_features[feature]})
                 else:
                     d.update({feature + '_' + key_point: np.NaN})
+        '''
         return d
 
     def feature_extraction_dataset(self, df: pd.DataFrame):
@@ -368,16 +385,17 @@ class FE():
         data_face = []
         data_hand = []
         data_name = []
-        columns = ['id', 'r', 'dataset', 'age', 'gender', 'stage', 'year', 'UPDRS_3', 'UPDRS_1_2_4', 'UPDRS','UPDRS_HAND_FACE', 'UPDRS_mimic', '3.4a_FT','3.4b_FT','3.5a_OC', '3.5b_OC', '3.6a_PS', '3.6b_PS', 'face data quality', 'hand data quality', 'path_to_folder']
+        columns = ['id', 'r', 'dataset', 'age', 'gender', 'stage', 'year', 'UPDRS_3', 'UPDRS_1_2_4', 'UPDRS','UPDRS_HAND_FACE', 'UPDRS_mimic', '3.4a_FT','3.4b_FT','3.5a_OC', '3.5b_OC', '3.6a_PS', '3.6b_PS', '3.15a_Постуральный тремор', '3.15b_Постуральный тремор', '3.16a_Кинетический тремор',	'3.16b_Кинетический тремор',	'3.17a_Амплитуда термора покоя',	'3.17b_Амплитуда термора покоя',	'3.17c_Амплитуда термора покоя',	'3.17d_Амплитуда термора покоя',	'3.17e_Амплитуда термора покоя',	'3.18_Постоянство тремора покоя', 'face data quality', 'hand data quality', 'path_to_folder']
         for mode in self.config_fe['meta_data']['feature_mode']:
-            if mode=='hand':
+            if ((mode=='hand') | (mode=='hand_angle') | (mode=='hand2D_distance') | (mode=='hand2D_angle')):
                 dfs = []
                 for i in range(len(df)):
-                    dfs.append(self.hand_feature_extraction_by_folder(df.iloc[i][columns]))
+                    dfs.append(self.hand_feature_extraction_by_folder(df.iloc[i][columns], mode))
                 df_hand = pd.concat(dfs, axis=0).reset_index()
+                df_hand = df_hand.drop(columns = ['index']) #TODO
                 data_hand.append(df_hand)
                 data.append(df_hand)
-                data_name.append('hand')
+                data_name.append(mode)
                 #df_hand = df.merge(df_hand, left_on=['id','r'], right_on=['id','r'], how = 'outer')
                 #print(df)
                 print('---Hand feature calculated---')
@@ -414,6 +432,17 @@ class FE():
                 # df_face = df.merge(df_face, left_on=['id', 'r'], right_on=['id', 'r'], how='outer')
                 # print(df_face)
                 print('---Tremor feature calculated---')
+            if mode == 'blinking':
+                dfs = []
+                for i in range(len(df)):
+                    dfs.append(self.blinking_feature_extraction_by_folder(df.iloc[i][columns]))
+                df_blinking = pd.concat(dfs, axis=0).reset_index()
+                data_face.append(df_blinking)
+                data.append(df_blinking)
+                data_name.append('blinking')
+                print('---Blinking feature calculated---')
+
+
         '''     
         df = df.merge(df_hand, left_on=['id', 'r'], right_on=['id', 'r'], how='outer')
         df = df.merge(df_face, left_on=['id', 'r'], right_on=['id', 'r'], how='outer')
@@ -436,17 +465,17 @@ class FE():
         df.to_csv(saving_df_path)
         for i in range(len(data)):
             data[i].to_csv(os.path.join(output_dir, data_name[i] + "_feature.csv"))
-    def hand_feature_extraction_by_folder(self, data):
+    def hand_feature_extraction_by_folder(self, data, mode):
         # TODO class for every feature extractor
         dfs = []
-        path_to_point_folder = os.path.join(data['path_to_folder'], self.config_fe['feature_extractor']['hand']['path_to_point_folder'])
+        path_to_point_folder = os.path.join(data['path_to_folder'], self.config_fe['feature_extractor'][mode]['path_to_point_folder'])
         if os.path.isdir(path_to_point_folder):
             for file in os.listdir(path_to_point_folder):
                 ex = {'1': 'FT', '2': 'OC', '3': 'PS'}
-                exercise_number = file.split('leapRecording')[1].split('_')[0]
+                exercise_number = file.split(self.config_fe['feature_extractor'][mode]['record_title'])[1].split('_')[0]
                 exercise = ex[exercise_number]
-                if exercise in self.config_fe['feature_extractor']['hand']['exercise']:
-                    dfs.append(self.feature_calculation_hand(path_to_point_folder, file, exercise))
+                if exercise in self.config_fe['feature_extractor'][mode]['exercise']:
+                    dfs.append(self.feature_calculation_hand(path_to_point_folder, file, exercise, mode))
             dfs = pd.DataFrame(dfs).groupby(['m','hand'], as_index=False).mean(numeric_only=True)
         else:
             print('No folder:', path_to_point_folder)
@@ -460,7 +489,8 @@ class FE():
         # dfs['gender'] = gender
         # dfs['stage'] = stage
         #calculate features between hands
-        dfs = self.feature_difference_between_hand(dfs)
+        if os.path.isdir(path_to_point_folder):
+            dfs = self.feature_difference_between_hand(dfs, mode)
 
         return dfs
 
@@ -513,24 +543,83 @@ class FE():
     def tremor_feature_extraction_by_folder(self, data):
         # TODO class for every feature extractor
         dfs = []
-        path_to_tr_folder = os.path.join(data['path_to_folder'], self.config_fe['feature_extractor']['hand']['path_to_point_folder'])
+        path_to_tr_folder = os.path.join(data['path_to_folder'], self.config_fe['feature_extractor']['tremor']['path_to_folder'])
         if os.path.isdir(path_to_tr_folder):
             for file in os.listdir(path_to_tr_folder):
                 for key_point in self.config_fe['feature_extractor']['tremor']['key_point']:
                     if (('TR' in file) & ('.json' in file)):
-                        dfs.append(self.feature_calculation_tremor(path_to_tr_folder, file, key_point))
+                        hand = file.split('_')[1]
+                        if hand == 'RL':
+                            for hand_type in ['R', 'L']:
+                                dfs.append(self.feature_calculation_tremor(path_to_tr_folder, file, key_point, hand_type))
+                        else:
+                            dfs.append(self.feature_calculation_tremor(path_to_tr_folder, file, key_point, hand))
+
             if len(dfs) != 0:
                 dfs = pd.DataFrame(dfs).groupby(['m','hand'], as_index=False).mean(numeric_only=True)
-                # dfs = self.feature_difference_between_hand(dfs)
-                for col in data.index:
-                    dfs[col] = data[col]
+                #dfs = self.feature_difference_between_hand(dfs)
+                #for col in data.index:
+                #    dfs[col] = data[col]
+
             else:
                 print('No files with TR:', path_to_tr_folder)
                 dfs = pd.DataFrame()
+
         else:
             print('No folder:', path_to_tr_folder)
             dfs = pd.DataFrame()
+
+        dfs['id'] = data['id']
+        for col in data.index:
+            if col != 'id':
+                dfs[col] = data[col]
         return dfs
+
+    def blinking_feature_extraction_by_folder(self, data):
+        # TODO class for every feature extractor
+        result = []
+        path = data['path_to_folder']
+        dfs = pd.DataFrame()
+        if os.path.isdir(os.path.join(path, 'face')):
+            files = glob.glob(os.path.join(path, 'face', 'p1_*.csv'))
+            if len(files) != 0:
+                df = pd.read_csv(os.path.join(path, 'face', files[0]))
+                df['AU45'] = df[' AU45_r'] * df[' AU45_c']
+                df['AU45'] = df['AU45'].apply(lambda x: 0 if x < self.config_fe['feature_extractor']['blinking']['threshold'] else x)
+                peaks, peaks_values = find_peaks(df['AU45'].values, distance=30)
+                if len(peaks) > 0:
+                    #amplitude = np.mean(peaks_values)
+                    amplitude = np.mean(df['AU45'].values[peaks])
+                else:
+                    amplitude = 0
+                result.append({'Frq_AU45': len(peaks) / (len(df['AU45']) / 60),
+                               'Num_AU45': len(peaks),
+                               'Length_AU45': len(df['AU45']) / 60,
+                               'Amp_AU45': amplitude})
+                dfs = pd.DataFrame(result)
+            else:
+                result.append({'Frq_AU45': np.NaN})
+                dfs = pd.DataFrame(result)
+                print('No p1:', path)
+
+        else:
+            result.append({'AU45_Frq': np.NaN})
+            dfs = pd.DataFrame(result)
+            print('No folder face:', path)
+
+        dfs['id'] = data['id']
+        dfs = pd.DataFrame(dfs).groupby(['id']).mean(numeric_only=True)
+        for col in data.index:
+            if col != 'id':
+                dfs[col] = data[col]
+        # dfs['dataset'] = dataset
+        # dfs['age'] = age
+        # dfs['gender'] = gender
+        # dfs['stage'] = stage
+        return dfs
+
+
+
 
     '''
     def DeleterPoint1(point_sort):
