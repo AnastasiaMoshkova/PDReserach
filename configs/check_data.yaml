@@ -5,12 +5,16 @@ defaults:
   - _self_
   - hydra: default
 
-mode: ['hand'] #['hand', 'face', 'em', 'tremor'] #TODO different task
+mode: ['hand2D'] #['hand', 'face', 'em', 'tremor'] #TODO different task
 save_plot: True
 
 PD:
   path_to_directory: 'D://PD'
-  number: [1, 2,  3,  4,  5,  6,  7,  8,  9,
+  number: [100, 102, 103, 104, 105, 106, 107, 108, 109, 110,
+           111, 112, 113, 114, 115, 116, 117, 118, 119, 120,
+           121, 122, 123, 124, 125, 126, 127, 128, 129, 130,
+           131, 132, 133]
+  number2: [1, 2,  3,  4,  5,  6,  7,  8,  9,
            11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
            21, 22, 23, 24, 25, 26, 27, 28, 29, 30,
            31, 32, 33, 34, 35, 36, 37, 38, 39, 40,
@@ -21,12 +25,15 @@ PD:
            81, 83, 90,
            #82, 85, 86, 87 - нет lmt
            91, 92, 93, 94, 95, 96, 97, 98, 99,
-           100, 102, 103, 104, 105, 106]
+            100, 102, 103, 104, 105, 106, 107, 108, 109, 110,
+            111, 112, 113, 114, 115, 116, 117, 118, 119, 120,
+            121, 122, 123, 124, 125, 126, 127, 128, 129, 130,
+            131, 132, 133]
   id_name: 'Patient'
 
 HEALTHY:
   path_to_directory: 'D://HEALTHY'
-  number: [] #[5]
+  number: [19, 20, 21, 22, 23, 24] #[5]
   id_name: 'Healthy'
 
 STUDENT:
@@ -37,10 +44,25 @@ STUDENT:
 
 hand:
   path_to_mannual_point: 'mannual_point_v2'
-  path_to_auto_point: 'auto_algorithm_hand2'
+  path_to_auto_point: 'auto_algorithm_hand2_distance'
   exercise: ['leapRecording1_L.lmt','leapRecording1_R.lmt','leapRecording2_L.lmt','leapRecording2_R.lmt','leapRecording3_L.lmt','leapRecording3_R.lmt']
   length_threshold: 1700
   folder: 'handv22'
+  prefix: 'leapRecording'
+  dtype: '.lmt'
+  hand_class:
+    _target_: data_base.hand3D.HandData
+
+hand2D:
+  path_to_mannual_point: 'auto_algorithm_handMP_angle'
+  path_to_auto_point: 'auto_algorithm_handMP_angle'
+  exercise: ['mp1_L.MOV','mp1_R.MOV', 'mp2_L.MOV','mp2_R.MOV', 'mp3_L.MOV','mp3_R.MOV', ]
+  length_threshold: 500
+  folder: 'handMP'
+  prefix: 'mp'
+  dtype: '.MOV'
+  hand_class:
+    _target_: data_base.hand2D.HandDataAngle
 
 face:
   path_to_mannual_point: 'mannual_point_face'

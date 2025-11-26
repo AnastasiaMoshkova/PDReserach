@@ -7,9 +7,11 @@ from matplotlib.pyplot import figure
 import matplotlib.pyplot as plt
 import cv2
 from data_base.hand3D import HandData
+from data_base.hand2D import HandDataAngle
+from hydra.utils import instantiate
 import math
 
-class CheckData(HandData):
+class CheckData():
     def __init__(self, config):
         self.config = config
 
@@ -23,12 +25,12 @@ class CheckData(HandData):
         return file_size, file_flag
 
     def _check_json_len(self, path, m, file):
-        files_json = os.listdir(os.path.join(path, self.config['hand']['folder']))
-        file_json = [file_j for file_j in files_json if file.split('.lmt')[0] + '_' + m in file_j]
+        files_json = os.listdir(os.path.join(path, self.config[self.mode]['folder']))
+        file_json = [file_j for file_j in files_json if file.split(self.config[self.mode]['dtype'])[0] + '_' + m in file_j]
         if len(file_json) != 0:
             file_json_name = file_json[0]
-            file_size_json = os.stat(os.path.join(path, self.config['hand']['folder'], file_json_name)).st_size
-            data = json.load(open(os.path.join(path, self.config['hand']['folder'], file_json_name)))
+            file_size_json = os.stat(os.path.join(path, self.config[self.mode]['folder'], file_json_name)).st_size
+            data = json.load(open(os.path.join(path, self.config[self.mode]['folder'], file_json_name)))
             json_length = len(data)
             hand_L_in_json = 0
             hand_R_in_json = 0
@@ -45,7 +47,7 @@ class CheckData(HandData):
         path = os.path.join(path_to_dir, folder, r)
         if os.path.isdir(os.path.join(path, folder_point)):
             files_point = os.listdir(os.path.join(path, folder_point))
-            file_point = [file_m for file_m in files_point if file.split('.lmt')[0] + '_' + m in file_m]
+            file_point = [file_m for file_m in files_point if file.split(self.config[self.mode]['dtype'])[0] + '_' + m in file_m]
             if len(file_point) != 0:
                 file_point_name = file_point[0]
                 path_to_point = os.path.join(path_to_dir, folder, r, folder_point, file_point_name)
@@ -67,13 +69,14 @@ class CheckData(HandData):
         point_mannual = []
         point_auto = []
         print(path_to_dir,file_signal)
-        exersice = file_signal.split('_')[0].split('leapRecording')[1]
+        exersice = file_signal.split('_')[0].split(self.config[self.mode]['prefix'])[1]
         hand_type = file_signal.split('_')[1]
-        values, frame, _ = self.signal_hand(os.path.join(path_to_dir, self.config['hand']['folder'], file_signal), exersice, hand_type)
-        if os.path.isfile(os.path.join(path_to_dir, self.config['hand']['path_to_mannual_point'], str(file_mannual_point))):
-            point_mannual = json.load(open(os.path.join(path_to_dir, self.config['hand']['path_to_mannual_point'], str(file_mannual_point))))
-        if os.path.isfile(os.path.join(path_to_dir, self.config['hand']['path_to_auto_point'], str(file_auto_point))):
-            point_auto = json.load(open(os.path.join(path_to_dir, self.config['hand']['path_to_auto_point'], str(file_auto_point))))
+        hand_class = instantiate(self.config[self.mode]['hand_class'])
+        values, frame, _ = hand_class.signal_hand(os.path.join(path_to_dir, self.config[self.mode]['folder'], file_signal), exersice, hand_type)
+        if os.path.isfile(os.path.join(path_to_dir, self.config[self.mode]['path_to_mannual_point'], str(file_mannual_point))):
+            point_mannual = json.load(open(os.path.join(path_to_dir, self.config[self.mode]['path_to_mannual_point'], str(file_mannual_point))))
+        if os.path.isfile(os.path.join(path_to_dir, self.config[self.mode]['path_to_auto_point'], str(file_auto_point))):
+            point_auto = json.load(open(os.path.join(path_to_dir, self.config[self.mode]['path_to_auto_point'], str(file_auto_point))))
         figure(figsize=(20, 6), dpi=80)
         fig, axs = plt.subplots(2, figsize=(20, 12))
         axs[0].plot(frame, values)
@@ -98,7 +101,8 @@ class CheckData(HandData):
                 axs[1].plot(point_auto[i]['X'], point_auto[i]['Y'], 'o', color='red')
         axs[1].tick_params(axis='x', labelsize=15)
         axs[1].tick_params(axis='y', labelsize=15)
-        plt.savefig(os.path.join(output_dir, file_signal.split('.')[0] + '.png'))
+        r = path_to_dir[-1]
+        plt.savefig(os.path.join(output_dir, file_signal.split('.')[0] + '_' + r + '.png'))
 
     def plot_face_signals_and_points(self, output_dir, path_to_dir, file_signal, file_mannual_point, file_auto_point):
         pass #TODO
@@ -114,17 +118,17 @@ class CheckData(HandData):
                 ms = [m for m in folders if re.findall(r'm\d+', m)]
                 for m in ms:
                     if os.path.isdir(os.path.join(path, m)):
-                        for file in self.config['hand']['exercise']:
+                        for file in self.config[self.mode]['exercise']:
                             file_size, file_flag = self._check_file_exist(os.path.join(path, m), file)
                             file_json_name, file_size_json, json_length, hand_L_in_json, hand_R_in_json = self._check_json_len(path, m, file)
-                            file_mannual_point_name, mannual_point_length, mannual_point_X = self._check_point(path_to_dir, folder, r, file, m, self.config['hand']['path_to_mannual_point'])
-                            file_auto_point_name, auto_point_length, auto_point_X = self._check_point(path_to_dir, folder, r, file, m, self.config['hand']['path_to_auto_point'])
+                            file_mannual_point_name, mannual_point_length, mannual_point_X = self._check_point(path_to_dir, folder, r, file, m, self.config[self.mode]['path_to_mannual_point'])
+                            file_auto_point_name, auto_point_length, auto_point_X = self._check_point(path_to_dir, folder, r, file, m, self.config[self.mode]['path_to_auto_point'])
                             result.append({
                                 'folder': folder,
                                 'r': r,
                                 'm': m,
-                                'exersise': file.split('_')[0].split('leapRecording')[1],
-                                'hand': file.split('_')[1].split('.lmt')[0],
+                                'exersise': file.split('_')[0].split(self.config[self.mode]['prefix'])[1],
+                                'hand': file.split('_')[1].split(self.config[self.mode]['dtype'])[0],
                                 'lmt_type': file,
                                 'lmt': file_flag,
                                 'lmt_weight': file_size,
@@ -232,6 +236,7 @@ class CheckData(HandData):
 
     def processing(self, output_dir):
         for mode in self.config['mode']:
+            self.mode = mode
             df_result = []
             df = pd.DataFrame()
             for dataset in ['PD','HEALTHY','STUDENT']:
@@ -239,6 +244,8 @@ class CheckData(HandData):
                 id_name = self.config[dataset]['id_name']
                 numbers = self.config[dataset]['number']
                 if mode=='hand':
+                    df = self.hand_verification(path_to_dir,id_name,numbers,output_dir)
+                if mode=='hand2D':
                     df = self.hand_verification(path_to_dir,id_name,numbers,output_dir)
                 if mode=='tremor':
                     df = self.tremor_verification(path_to_dir,id_name,numbers)
