@@ -10,7 +10,8 @@ save_plot: True
 
 PD:
   path_to_directory: 'D://PD'
-  number: [100, 102, 103, 104, 105, 106, 107, 108, 109, 110,
+  number: [100]
+  number3: [100, 102, 103, 104, 105, 106, 107, 108, 109, 110,
            111, 112, 113, 114, 115, 116, 117, 118, 119, 120,
            121, 122, 123, 124, 125, 126, 127, 128, 129, 130,
            131, 132, 133]
@@ -33,14 +34,13 @@ PD:
 
 HEALTHY:
   path_to_directory: 'D://HEALTHY'
-  number: [19, 20, 21, 22, 23, 24] #[5]
+  number: [] #[19, 20, 21, 22, 23, 24] #[5]
   id_name: 'Healthy'
 
 STUDENT:
   path_to_directory: 'D://STUDENTS'
   number:  [] #[]
   id_name: 'student'
-
 
 hand:
   path_to_mannual_point: 'mannual_point_v2'
@@ -52,6 +52,10 @@ hand:
   dtype: '.lmt'
   hand_class:
     _target_: data_base.hand3D.HandData
+  thresholds:
+    FT: 10
+    OC: 10
+    PS: 10
 
 hand2D:
   path_to_mannual_point: 'auto_algorithm_handMP_angle'
@@ -63,6 +67,10 @@ hand2D:
   dtype: '.MOV'
   hand_class:
     _target_: data_base.hand2D.HandDataAngle
+  thresholds:
+    FT: 10
+    OC: 10
+    PS: 10
 
 face:
   path_to_mannual_point: 'mannual_point_face'

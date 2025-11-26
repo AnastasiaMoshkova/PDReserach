@@ -83,6 +83,9 @@ class CheckData():
         axs[0].set_title('Mannual ' + str(file_mannual_point), fontsize=15)
         axs[0].set_xlabel('Time (sec)', fontsize=15)
         axs[0].set_ylabel('Distance (mm)', fontsize=15)
+
+        point_mannual = self.deleterAmplitude(point_mannual,exersice) #TODO for each
+
         for i in range(len(point_mannual)):
             if point_mannual[i]['Type'] == 0:
                 axs[0].plot(point_mannual[i]['X'], point_mannual[i]['Y'], 'o', color='blue')
@@ -109,6 +112,51 @@ class CheckData():
 
     def plot_tremor_signals_and_points(self, output_dir, path_to_dir, file_signal):
         pass #TODO
+
+    def _points_transform(self, points):
+        maxPointX = [x['X'] for x in points if x['Type']==1]
+        maxPointY = [x['Y'] for x in points if x['Type']==1]
+        minPointX = [x['X'] for x in points if x['Type']==0]
+        minPointY = [x['Y'] for x in points if x['Type']==0]
+        return maxPointX, maxPointY, minPointX, minPointY
+    def deleterAmplitude(self, points, exersice):
+        exersice_dict = {'1': 'FT', '2': 'OC', '3': 'PS'}
+        exersice = exersice_dict[exersice]
+        resultMax = []
+        resultMin = []
+        maxPointX, maxPointY, minPointX, minPointY = self._points_transform(points)
+        for i in range(len(maxPointX)):
+            if (maxPointY[i] - minPointY[i + 1]) < self.config[self.mode]['thresholds'][exersice]:
+                resultMax.append(i)
+                resultMin.append(i + 1)
+        if len(resultMax) != 0:
+            resultMax.reverse()
+            for k in resultMax:
+                del maxPointX[k]
+                del maxPointY[k]
+        if len(resultMin) != 0:
+            resultMin.reverse()
+            for k in resultMin:
+                del minPointX[k]
+                del minPointY[k]
+        points_result = []
+        for i in range(len(maxPointX)):
+            points_result.append({
+              'Type': 1,
+              'Scale': 1.0,
+              'Brush': '#FFFF0000',
+                'X': maxPointX[i],
+                'Y': maxPointY[i],
+            })
+        for i in range(len(minPointX)):
+            points_result.append({
+              'Type': 0,
+              'Scale': 1.0,
+              'Brush': '#FF0000FF',
+                'X': minPointX[i],
+                'Y': minPointY[i],
+            })
+        return points_result
     def hand_verification(self, path_to_dir, id_name, numbers, output_dir):
         result = []
         for folder in [id_name + str(number) for number in numbers]:
@@ -243,9 +291,7 @@ class CheckData():
                 path_to_dir = self.config[dataset]['path_to_directory']
                 id_name = self.config[dataset]['id_name']
                 numbers = self.config[dataset]['number']
-                if mode=='hand':
-                    df = self.hand_verification(path_to_dir,id_name,numbers,output_dir)
-                if mode=='hand2D':
+                if ((mode=='hand') | (mode=='hand2D')):
                     df = self.hand_verification(path_to_dir,id_name,numbers,output_dir)
                 if mode=='tremor':
                     df = self.tremor_verification(path_to_dir,id_name,numbers)
