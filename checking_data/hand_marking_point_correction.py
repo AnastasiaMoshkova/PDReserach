@@ -191,5 +191,5 @@ class PointCorrection:
                                     plt.xlabel('frame')
                                     plt.ylabel('Distance')
                                     plt.legend()
-                                    plt.savefig(os.path.join(path_to_save, file_point.split('.')[0]+'.png'))
+                                    plt.savefig(os.path.join(path_to_save, file_point.split('.')[0]+'_'+ r +'.png'))
                                     #plt.show()
