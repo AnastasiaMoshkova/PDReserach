@@ -24,8 +24,8 @@ class FE():
             r_number = []
             number = []
             df = pd.read_csv(self.config_fe[dataset]['path_to_meta'])
-            df = df[['№', 'ФИО', 'Год рождения', 'Стадия по Хен-Яру', 'Возраст', 'Пол', 'face data quality', 'hand data quality', 'Сумма баллов ч.1, 2 и 4', 'Сумма баллов (только моторика, часть 3 UPDRS)', 'Сумма баллов (все части UPDRS)', 'UPDRS_HAND_FACE', '3.2_Выразительность лица', '3.4a_FT','3.4b_FT',	'3.5a_OC', '3.5b_OC', '3.6a_PS', '3.6b_PS', '3.15a_Постуральный тремор', '3.15b_Постуральный тремор', '3.16a_Кинетический тремор',	'3.16b_Кинетический тремор',	'3.17a_Амплитуда термора покоя',	'3.17b_Амплитуда термора покоя',	'3.17c_Амплитуда термора покоя',	'3.17d_Амплитуда термора покоя',	'3.17e_Амплитуда термора покоя',	'3.18_Постоянство тремора покоя']] #.drop([0,1])
-            df['Стадия по Хен-Яру'] = df['Стадия по Хен-Яру'].replace('Атипичный', -1).replace('2,5', 2.5).replace('3,5', 3.5).apply(float)
+            df = df[['№', 'ФИО', 'Год рождения', 'Стадия по Хен-Яру', 'Возраст', 'Пол', 'face data quality', 'hand data quality', 'Сумма баллов ч.1, 2 и 4', 'Сумма баллов (только моторика, часть 3 UPDRS)', 'Сумма баллов (все части UPDRS)', 'UPDRS_HAND_FACE', 'Моторные флуктуации', '3.2_Выразительность лица', '3.4a_FT','3.4b_FT',	'3.5a_OC', '3.5b_OC', '3.6a_PS', '3.6b_PS', '3.15a_Постуральный тремор', '3.15b_Постуральный тремор', '3.16a_Кинетический тремор',	'3.16b_Кинетический тремор',	'3.17a_Амплитуда термора покоя',	'3.17b_Амплитуда термора покоя',	'3.17c_Амплитуда термора покоя',	'3.17d_Амплитуда термора покоя',	'3.17e_Амплитуда термора покоя',	'3.18_Постоянство тремора покоя']] #.drop([0,1])
+            df['Стадия по Хен-Яру'] = df['Стадия по Хен-Яру'].replace('Атипичный', -1).replace('2,5', 2.5).replace('3,5', 3.5).replace('3->4', 3.5).replace('3-4', 3.5).replace('1->2', 1.5).apply(float)
             df[['Сумма баллов ч.1, 2 и 4', 'Сумма баллов (только моторика, часть 3 UPDRS)', 'Сумма баллов (все части UPDRS)', 'UPDRS_HAND_FACE', '3.2_Выразительность лица', '3.4a_FT','3.4b_FT',	'3.5a_OC', '3.5b_OC', '3.6a_PS', '3.6b_PS']] = df[['Сумма баллов ч.1, 2 и 4', 'Сумма баллов (только моторика, часть 3 UPDRS)', 'Сумма баллов (все части UPDRS)', 'UPDRS_HAND_FACE', '3.2_Выразительность лица', '3.4a_FT','3.4b_FT','3.5a_OC', '3.5b_OC', '3.6a_PS', '3.6b_PS']].replace(regex={',': '.'}).astype(float)
             df['№'] = df['№'].apply(int)
             folders = os.listdir(self.config_fe[dataset]['path_to_directory'])
@@ -250,7 +250,7 @@ class FE():
 
     def feature_difference_between_hand(self, df, mode):
         signal_type = self.config_fe['feature_extractor'][mode]['signal_type']
-        features = [name + '_' + ex + '_' +  signal_type for ex in self.config_fe['feature_extractor'][mode]['exercise'] for name in self.config_fe['feature_extractor'][mode]['feature_type']]
+        features = [name + '_' + ex + signal_type for ex in self.config_fe['feature_extractor'][mode]['exercise'] for name in self.config_fe['feature_extractor'][mode]['feature_type']]
         agg = {'id': 'first', 'r': 'first', 'm': 'first'}
         f = lambda x: abs(x.diff().dropna().values[0]) if ((len(x.dropna()) == 2) & (-1 not in set(x))) else np.NaN
         for feature in features:
@@ -259,7 +259,7 @@ class FE():
         features2.extend(features)
         #df2 = df.groupby(['id', 'r', 'm'], as_index=False)[features2].agg(agg).rename(columns=dict(zip(features, [fe.split('_')[0] + 'Diff_' + fe.split('_')[1] for fe in features])))
         df2 = df.groupby(['id', 'r', 'm'], as_index=False)[features2].agg(agg).rename(
-            columns=dict(zip(features, [fe.split('_')[0] + 'Diff_' + fe.split('_')[1] + '_' + signal_type for fe in features])))
+            columns=dict(zip(features, [fe.split('_')[0] + 'Diff_' + fe.split('_')[1] + signal_type for fe in features])))
         return df.merge(df2, left_on=['id', 'r', 'm'], right_on=['id', 'r', 'm'])
 
     def _norm_coefficient(self, path_to_folder, exercise, mode):
@@ -281,6 +281,7 @@ class FE():
         m = file.split('_')[2]
         patient_id = file.split('_')[3]
         path_to_file = os.path.join(path, file)
+        print(path_to_file)
         datapoint = json.load(open(path_to_file))
         start = self.config_fe['feature_extractor'][mode]['start']
         stop = self.config_fe['feature_extractor'][mode]['stop']
@@ -297,9 +298,9 @@ class FE():
             if len(maxPointX) > 1:
                 #d.update({feature+'_'+exercise:self.feature1(data)})
                 feature_class = instantiate(self.config_feature[feature], maxPointX, maxPointY, minPointX, minPointY, norm_coeff, datapoint)
-                d.update({feature + '_' + exercise + '_' + signal_type: feature_class.calc()})
+                d.update({feature + '_' + exercise + signal_type: feature_class.calc()})
             else:
-                d.update({feature + '_' + exercise + '_' + signal_type: -1})
+                d.update({feature + '_' + exercise + signal_type: -1})
         return d
 
     def feature_calculation_face(self, path, file, exercise):
@@ -385,7 +386,7 @@ class FE():
         data_face = []
         data_hand = []
         data_name = []
-        columns = ['id', 'r', 'dataset', 'age', 'gender', 'stage', 'year', 'UPDRS_3', 'UPDRS_1_2_4', 'UPDRS','UPDRS_HAND_FACE', 'UPDRS_mimic', '3.4a_FT','3.4b_FT','3.5a_OC', '3.5b_OC', '3.6a_PS', '3.6b_PS', '3.15a_Постуральный тремор', '3.15b_Постуральный тремор', '3.16a_Кинетический тремор',	'3.16b_Кинетический тремор',	'3.17a_Амплитуда термора покоя',	'3.17b_Амплитуда термора покоя',	'3.17c_Амплитуда термора покоя',	'3.17d_Амплитуда термора покоя',	'3.17e_Амплитуда термора покоя',	'3.18_Постоянство тремора покоя', 'face data quality', 'hand data quality', 'path_to_folder']
+        columns = ['id', 'r', 'dataset', 'age', 'gender', 'stage', 'year', 'UPDRS_3', 'UPDRS_1_2_4', 'UPDRS','UPDRS_HAND_FACE', 'UPDRS_mimic', 'Моторные флуктуации', '3.4a_FT','3.4b_FT','3.5a_OC', '3.5b_OC', '3.6a_PS', '3.6b_PS', '3.15a_Постуральный тремор', '3.15b_Постуральный тремор', '3.16a_Кинетический тремор',	'3.16b_Кинетический тремор',	'3.17a_Амплитуда термора покоя',	'3.17b_Амплитуда термора покоя',	'3.17c_Амплитуда термора покоя',	'3.17d_Амплитуда термора покоя',	'3.17e_Амплитуда термора покоя',	'3.18_Постоянство тремора покоя', 'face data quality', 'hand data quality', 'path_to_folder']
         for mode in self.config_fe['meta_data']['feature_mode']:
             if ((mode=='hand') | (mode=='hand_angle') | (mode=='hand2D_distance') | (mode=='hand2D_angle')):
                 dfs = []
